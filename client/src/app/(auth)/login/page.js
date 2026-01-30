@@ -8,11 +8,11 @@ const spmono = Space_Mono({
 
 function LoginPage() {
   return (
-    <div className="w-full max-w-[705px]">
+    <div className="w-full max-w-176.25">
         <div
         className="
-        max-w-[705px]
-        min-h-[650px]
+        max-w-176.25
+        min-h-162.5
         bg-[#1E2332]
         rounded-xl
         flex
@@ -24,17 +24,17 @@ function LoginPage() {
             login
         </p>
         <div className="flex flex-col">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-[30px]`}>username</label>
-            <input className='w-[540px] h-[80px] bg-[#2A3247] rounded-2xl mt-[8px]'/>
+            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>username</label>
+            <input className='w-135 h-20 bg-[#2A3247] rounded-2xl mt-2'/>
         </div>
         <div className="flex flex-col">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-[20px]`}>password</label>
-            <input className='w-[540px] h-[80px] bg-[#2A3247] rounded-2xl mt-[8px]'/>
+            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>password</label>
+            <input className='w-135 h-20 bg-[#2A3247] rounded-2xl mt-2'/>
         </div>
-        <button className={`${spmono.className} font-bold text-white text-[32px] w-[280px] h-[80px] bg-[#EF4444] rounded-xl mt-[50px]`}>
+        <button className={`${spmono.className} font-bold text-white text-[32px] w-70 h-20 bg-[#EF4444] rounded-xl mt-[50px]`}>
             login
         </button>
-        <p className={`${spmono.className} font-bold text-white text-[14px] mt-[50px]`}>Don&apos;t have an account?</p>
+        <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Don&apos;t have an account?</p>
         <a className={`${spmono.className} font-bold text-white text-[14px] underline`}>Register</a>
         </div>
     </div>
