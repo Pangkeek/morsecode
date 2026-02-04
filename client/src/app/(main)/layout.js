@@ -14,9 +14,9 @@ function Mainlayout({ children }) {
         <nav className='w-full flex justify-between px-22 py-10'>
             <div className='w-[520px] flex justify-between items-center'>
                 <a className={`${spmono.className} font-bold text-white text-[20px]`}>morse<span className='text-[#EF4444]'>code</span></a>
-                <a className={`${spmono.className} font-bold text-[#9CA3AF]`}>practice</a>
-                <a className={`${spmono.className} font-bold text-[#9CA3AF]`}>leaderboard</a>
-                <a className={`${spmono.className} font-bold text-[#9CA3AF]`}>about</a>
+                <a className={`${spmono.className} font-bold text-[#9CA3AF] transition-colors duration-300 hover:text-white`}>practice</a>
+                <a className={`${spmono.className} font-bold text-[#9CA3AF] transition-colors duration-300 hover:text-white`}>leaderboard</a>
+                <a className={`${spmono.className} font-bold text-[#9CA3AF] transition-colors duration-300 hover:text-white`}>about</a>
             </div>
             <div className={`${spmono.className} w-12 h-12 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[14px] text-white outline outline-[#EF4444]`}>
               <p className='mb-1'>jp</p>
