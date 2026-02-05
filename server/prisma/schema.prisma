@@ -45,3 +45,10 @@ model Result {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Word {
+  id         Int      @id @default(autoincrement())
+  word       String   @unique
+  difficulty String   @default("easy") // "easy", "medium", "hard"
+  createdAt  DateTime @default(now())
+}

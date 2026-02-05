@@ -44,6 +44,11 @@ app.use('/api/results', resultsRoutes);
 const settingsRoutes = require('./routes/settings.js');
 app.use('/api/settings', settingsRoutes);
 
+// Random routes (for random letters and words)
+const randomRoutes = require('./routes/random.js');
+app.use('/api/random', randomRoutes);
+
+
 // Start server synchronously
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, () => {

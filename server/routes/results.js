@@ -89,6 +89,87 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// GET /api/results/stats/detailed - Get detailed statistics grouped by mode combination
+router.get('/stats/detailed', async (req, res) => {
+    try {
+        const results = await req.prisma.result.findMany({
+            where: { userId: req.user.id }
+        });
+
+        // Group results by mode_letterMode_letterCount
+        const grouped = {};
+
+        // Initialize all 16 possible combinations with empty stats
+        const modes = ['encode', 'decode'];
+        const letterModes = ['a-z', 'word'];
+        const letterCounts = [10, 15, 50, 100];
+
+        for (const mode of modes) {
+            for (const letterMode of letterModes) {
+                for (const letterCount of letterCounts) {
+                    const key = `${mode}_${letterMode}_${letterCount}`;
+                    grouped[key] = {
+                        totalGames: 0,
+                        avgWpm: 0,
+                        bestWpm: 0,
+                        avgAccuracy: 0,
+                        bestAccuracy: 0,
+                        totalTimePlayed: 0,
+                        results: []
+                    };
+                }
+            }
+        }
+
+        // Populate with actual results
+        for (const result of results) {
+            const key = `${result.mode}_${result.letterMode}_${result.letterCount}`;
+            if (grouped[key]) {
+                grouped[key].results.push(result);
+            }
+        }
+
+        // Calculate stats for each group
+        const detailedStats = {};
+        for (const [key, data] of Object.entries(grouped)) {
+            const { results: groupResults } = data;
+
+            if (groupResults.length === 0) {
+                detailedStats[key] = {
+                    totalGames: 0,
+                    avgWpm: 0,
+                    bestWpm: 0,
+                    avgAccuracy: 0,
+                    bestAccuracy: 0,
+                    totalTimePlayed: 0
+                };
+            } else {
+                const totalGames = groupResults.length;
+                const avgWpm = groupResults.reduce((sum, r) => sum + r.wpm, 0) / totalGames;
+                const avgAccuracy = groupResults.reduce((sum, r) => sum + r.accuracy, 0) / totalGames;
+                const bestWpm = Math.max(...groupResults.map(r => r.wpm));
+                const bestAccuracy = Math.max(...groupResults.map(r => r.accuracy));
+                const totalTimePlayed = groupResults.reduce((sum, r) => sum + r.timeTaken, 0);
+
+                detailedStats[key] = {
+                    totalGames,
+                    avgWpm: Math.round(avgWpm * 100) / 100,
+                    bestWpm,
+                    avgAccuracy: Math.round(avgAccuracy * 100) / 100,
+                    bestAccuracy,
+                    totalTimePlayed
+                };
+            }
+        }
+
+        res.json(detailedStats);
+    } catch (error) {
+        console.error('Get detailed stats error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 // DELETE /api/results/:id - Delete a specific result
 router.delete('/:id', async (req, res) => {
     try {
