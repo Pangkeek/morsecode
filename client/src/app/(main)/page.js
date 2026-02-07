@@ -17,7 +17,28 @@ export default function Home() {
   const [morseInput, setMorseInput] = useState('');
   const [spacebarStartTime, setSpacebarStartTime] = useState(null);
   const [isSpacebarPressed, setIsSpacebarPressed] = useState(false);
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const [encodeCurrentCharIndex, setEncodeCurrentCharIndex] = useState(0);
+  const [decodeCurrentCharIndex, setDecodeCurrentCharIndex] = useState(0);
+  // Use the appropriate index based on current mode
+  const currentCharIndex = mode === 'encode' ? encodeCurrentCharIndex : decodeCurrentCharIndex;
+  const setCurrentCharIndex = mode === 'encode' ? setEncodeCurrentCharIndex : setDecodeCurrentCharIndex;
+
+  // Reset current mode's progress when switching away from it
+  const [previousMode, setPreviousMode] = useState(mode);
+  React.useEffect(() => {
+    if (previousMode !== mode) {
+      // Reset the mode we're leaving
+      if (previousMode === 'encode') {
+        setEncodeCurrentCharIndex(0);
+      } else {
+        setDecodeCurrentCharIndex(0);
+      }
+      setPreviousMode(mode);
+    }
+    // Reset sliding window position for new mode
+    setCurrentLine(0);
+    setDecodeCurrentLine(0);
+  }, [mode, previousMode]);
   const [isError, setIsError] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [successDisplay, setSuccessDisplay] = useState('');
@@ -25,6 +46,37 @@ export default function Home() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [isFading, setIsFading] = useState(false);
   const [charInput, setCharInput] = useState('');
+  
+  // State for sliding window - track which line is currently visible
+  const [currentLine, setCurrentLine] = useState(0);
+  const [decodeCurrentLine, setDecodeCurrentLine] = useState(0);
+  const containerRef = React.useRef(null);
+  
+  // Effect to update current line based on progress - wait until line is fully completed
+  React.useEffect(() => {
+    // Encode mode: Show 20 characters at a time
+    const charsPerLine = 20;
+    const completedLines = Math.floor((currentCharIndex) / charsPerLine);
+    setCurrentLine(completedLines);
+    
+    // Decode mode: Account for alternating line lengths (13, 12, 13, 12...)
+    // Line 0: chars 0-12 (13 chars), Line 1: chars 13-24 (12 chars), Line 2: chars 25-37 (13 chars), etc.
+    let decodeCompletedLines = 0;
+    let remainingChars = currentCharIndex;
+    
+    while (remainingChars > 0) {
+      const isOddLine = decodeCompletedLines % 2 === 1;
+      const charsInThisLine = isOddLine ? 12 : 13;
+      
+      if (remainingChars >= charsInThisLine) {
+        remainingChars -= charsInThisLine;
+        decodeCompletedLines++;
+      } else {
+        break;
+      }
+    }
+    setDecodeCurrentLine(decodeCompletedLines);
+  }, [currentCharIndex]);
 
   // Generate full 100-length arrays
   const fullEncodeArray = ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U','A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'];
@@ -134,7 +186,7 @@ export default function Home() {
       if (e.code === 'Space' && isSpacebarPressed) {
         e.preventDefault();
         const pressDuration = Date.now() - spacebarStartTime;
-        const morseChar = pressDuration >= 300 ? '-' : '.';
+        const morseChar = pressDuration >= 150 ? '-' : '.';
         const newInput = morseInput + morseChar;
         setMorseInput(newInput);
         
@@ -288,7 +340,10 @@ export default function Home() {
             onClick={() => {
               setMorseInput('');
               setCharInput('');
-              setCurrentCharIndex(0);
+              setEncodeCurrentCharIndex(0);
+              setDecodeCurrentCharIndex(0);
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
               setIsError(false);
               setIsSuccess(false);
               setSuccessDisplay('');
@@ -303,21 +358,29 @@ export default function Home() {
         </div>
       ) : mode === 'decode' ? (
         <div className={`${isFading ? 'animate-fadeOut' : ''} flex flex-col items-center`}>
-          <div className='flex flex-wrap justify-center mt-40 max-w-7xl'>
-            {targetLetters.map((letter, index) => (
-              <p 
-                key={index}
-                className={`${spmono.className} text-[48px] font-bold transition-colors duration-300 ${
-                  index < currentCharIndex 
-                    ? 'text-white' 
-                    : index === currentCharIndex && isError
-                      ? 'text-red-500 animate-shake'
-                      : 'text-[#5a5e61]'
-                }`} style={{margin: '0 1rem'}}
-              >
-                {letter}
-              </p>
-            ))}
+          <div className='flex flex-wrap justify-center mt-40 max-w-7xl relative' style={{height: '60px', overflow: 'hidden'}}>
+            <div 
+              className='flex flex-wrap justify-center'
+              style={{
+                transform: `translateY(-${decodeCurrentLine * 80}px)`,
+                transition: 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)'
+              }}
+            >
+              {targetLetters.map((letter, index) => (
+                <p 
+                  key={index}
+                  className={`${spmono.className} text-[48px] font-bold transition-colors duration-300 ${
+                    index < currentCharIndex 
+                      ? 'text-white' 
+                      : index === currentCharIndex && isError
+                        ? 'text-red-500 animate-shake'
+                        : 'text-[#5a5e61]'
+                  }`} style={{margin: '0 1rem'}}
+                >
+                  {letter}
+                </p>
+              ))}
+            </div>
           </div>
           <Image 
             src="/reset-svgrepo-com 1.svg" 
@@ -328,7 +391,10 @@ export default function Home() {
             onClick={() => {
               setMorseInput('');
               setCharInput('');
-              setCurrentCharIndex(0);
+              setEncodeCurrentCharIndex(0);
+              setDecodeCurrentCharIndex(0);
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
               setIsError(false);
               setIsSuccess(false);
               setSuccessDisplay('');
@@ -404,7 +470,14 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <div className='flex flex-wrap mt-40 max-w-7xl'>
+          <div ref={containerRef} className='flex flex-wrap mt-40 max-w-7xl relative' style={{height: '60px', overflow: 'hidden'}}>
+          <div 
+            className='flex flex-wrap'
+            style={{
+              transform: `translateY(-${currentLine * 80}px)`,
+              transition: 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)'
+            }}
+          >
             {targetLettersEncode.map((letter, index) => (
               <p 
                 key={index}
@@ -420,6 +493,7 @@ export default function Home() {
               </p>
             ))}
           </div>
+        </div>
           <Image 
             src="/reset-svgrepo-com 1.svg" 
             width={14} 
@@ -429,6 +503,8 @@ export default function Home() {
             onClick={() => {
               setMorseInput('');
               setCurrentCharIndex(0);
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
               setIsError(false);
               setIsSuccess(false);
               setSuccessDisplay('');
