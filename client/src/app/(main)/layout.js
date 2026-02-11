@@ -21,9 +21,9 @@ function Mainlayout({ children }) {
                 <a href='/leaderboard' className={`${spmono.className} font-bold transition-colors duration-300 hover:text-white ${pathname === '/leaderboard' ? 'text-white' : 'text-[#9CA3AF]'}`}>leaderboard</a>
                 <a href='/about' className={`${spmono.className} font-bold transition-colors duration-300 hover:text-white ${pathname === '/about' ? 'text-white' : 'text-[#9CA3AF]'}`}>about</a>
             </div>
-            <div className={`${spmono.className} w-12 h-12 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[14px] text-white outline outline-[#EF4444]`}>
+            <a href='/profile' className={`${spmono.className} w-12 h-12 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[14px] text-white outline outline-[#EF4444]`}>
               <p className='mb-1'>jp</p>
-            </div>
+            </a>
         </nav>
         <div className='w-full px-7'>
             <div className='bg-white w-full h-[1px]'></div>
