@@ -18,39 +18,27 @@ export default function Profile() {
           >
             <p className="mb-1">jp</p>
           </div>
-          <div className='text-[20px]'>
-            <div className='flex'>
-              <div>
-                <p>Username</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
-              <div>
-                <p>UID</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
-              <div>
-                <p>Role</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
+          <div className='text-[20px] ml-10'>
+            <div className='grid grid-cols-3 gap-4 gap-x-40'>
+              <div>Username</div>
+              <div>UID</div>
+              <div>Role</div>
+              <div className="text-[#9CA3AF]">N/A</div>
+              <div className="text-[#9CA3AF]">N/A</div>
+              <div className="text-[#9CA3AF]">N/A</div>
             </div>
-            <div className='flex'>
-              <div>
-                <p>Acc Created</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
-              <div>
-                <p>E-mail</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
-              <div>
-                <p>Password</p>
-                <p className="text-[#9CA3AF]">N/A</p>
-              </div>
+            <div className='grid grid-cols-3 gap-4 gap-x-40 mt-10'>
+              <div>Acc Created</div>
+              <div>E-mail</div>
+              <div>Password</div>
+              <div className="text-[#9CA3AF]">N/A</div>
+              <div className="text-[#9CA3AF]">N/A</div>
+              <div className="text-[#9CA3AF]">N/A</div>
             </div>
           </div>
         </div>
         <h1 className={`${spmono.className} text-[32px] space-mono font-bold`}>Best Scores by Mode</h1>
-        <div className={`grid grid-cols-[400px_180px_180px_180px] px-4 mb-2 ${spmono.className} font-bold text-[#9CA3AF]`}>
+        <div className={`grid grid-cols-[400px_180px_180px_180px] px-4 mb-2 ${spmono.className} font-bold text-[#9CA3AF] pt-6`}>
             <div className='ml-10'>Mode</div>
             <div>WPS</div>
             <div>ACC</div>
@@ -61,7 +49,7 @@ export default function Profile() {
                 className={`grid grid-cols-[400px_180px_180px_180px]
                   px-4
                   h-16
-                 items-center bg-[#1E2332] text-white rounded-lg`}
+                 items-center bg-[#1E2332] text-white rounded-t-lg`}
               >
                 <div className="pl-10">Character to morse</div>
                 <div>N/A</div>
@@ -94,7 +82,7 @@ export default function Profile() {
                 className={`grid grid-cols-[400px_180px_180px_180px]
                   px-4
                   h-16
-                 items-center bg-[#1E2332] text-white`}
+                 items-center bg-[#1E2332] text-white rounded-b-lg`}
               >
                 <div className="pl-10">Morse to words</div>
                 <div>N/A</div>

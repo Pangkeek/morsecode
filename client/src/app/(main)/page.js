@@ -850,7 +850,7 @@ export default function Home() {
             </div>
             <div className="bg-[#717171] text-[11px]">
               <p
-                className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3`}
+                className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3 text-center`}
               >
                 enter - to reset
               </p>

@@ -14,7 +14,7 @@ function Mainlayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-[#141720] px-4">
-        <nav className='w-full flex justify-between px-22 py-10'>
+        <nav className='w-full flex justify-between px-40 py-10'>
             <div className='w-[520px] flex justify-between items-center'>
                 <a href='/' className={`${spmono.className} font-bold text-white text-[20px]`}>morse<span className='text-[#EF4444]'>code</span></a>
                 <a href='/practice' className={`${spmono.className} font-bold transition-colors duration-300 hover:text-white ${pathname === '/practice' ? 'text-white' : 'text-[#9CA3AF]'}`}>practice</a>
