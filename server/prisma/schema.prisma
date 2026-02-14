@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  username  String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  settings  Settings?
+  results   Result[]
+}
+
+model Settings {
+  id            Int     @id @default(autoincrement())
+  userId        Int     @unique
+  theme         String  @default("dark")
+  soundVolume   Int     @default(50)
+  showHints     Boolean @default(true)
+  preferredMode String  @default("encode")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Result {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  mode       String   // "encode" or "decode"
+  letterMode String   // "a-z" or "word"
+  letterCount Int
+  accuracy   Float
+  wpm        Float    // words per minute
+  timeTaken  Int      // in seconds
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Word {
+  id         Int      @id @default(autoincrement())
+  word       String   @unique
+  difficulty String   @default("easy") // "easy", "medium", "hard"
+  createdAt  DateTime @default(now())
+}
