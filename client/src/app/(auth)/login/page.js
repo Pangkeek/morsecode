@@ -42,7 +42,7 @@ function LoginPage() {
             login
         </button>
         <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Don&apos;t have an account?</p>
-        <a className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Register</a>
+        <a href="/register" className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Register</a>
         </div>
     </div>
   );

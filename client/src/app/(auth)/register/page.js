@@ -49,7 +49,7 @@ function RegisterPage() {
             register
         </button>
         <p className={`${spmono.className} font-bold text-white text-[14px] mt-[30px]`}>Already have an account?</p>
-        <a className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Log in</a>
+        <a href="/login" className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Log in</a>
         </div>
     </div>
   )
