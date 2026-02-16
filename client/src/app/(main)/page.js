@@ -725,14 +725,14 @@ export default function Home() {
 
   const targetWordsEncode = WORD_LIST.slice(
     0,
-    Math.min(numWords, WORD_LIST.length)
+    Math.min(numWords, WORD_LIST.length),
   );
 
   const targetWordsDecode = targetWordsEncode.map((word) =>
     word
       .split("")
       .map((c) => morseCodeMap[c])
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   const encodeCurrentWord = targetWordsEncode[encodeWordIndex] ?? "";
@@ -810,7 +810,7 @@ export default function Home() {
             const currentMorse = decodeCurrentMorse;
 
             const expectedLetter = Object.keys(morseCodeMap).find(
-              (key) => morseCodeMap[key] === currentMorse
+              (key) => morseCodeMap[key] === currentMorse,
             );
 
             if (expectedLetter && expectedLetter === newCharInput) {
@@ -856,7 +856,7 @@ export default function Home() {
           const currentMorse = targetLetters[currentCharIndex];
 
           const expectedLetter = Object.keys(morseCodeMap).find(
-            (key) => morseCodeMap[key] === currentMorse
+            (key) => morseCodeMap[key] === currentMorse,
           );
 
           if (expectedLetter && expectedLetter === newCharInput) {
@@ -1309,15 +1309,15 @@ export default function Home() {
                         isPast
                           ? "text-white"
                           : isCurrent && isError
-                          ? "text-red-500 animate-shake"
-                          : "text-[#5a5e61]"
+                            ? "text-red-500 animate-shake"
+                            : "text-[#5a5e61]"
                       }`}
                       style={{ margin: "0 1rem" }}
                     >
                       {letter}
                     </p>
                   );
-                }
+                },
               )}
             </div>
 
@@ -1374,8 +1374,8 @@ export default function Home() {
               isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                ? "text-green-500"
-                : "text-white"
+                  ? "text-green-500"
+                  : "text-white"
             }`}
           >
             {isSuccess
@@ -1547,8 +1547,8 @@ export default function Home() {
                       isPast
                         ? "text-white"
                         : isCurrent && isError
-                        ? "text-red-500 animate-shake"
-                        : "text-[#5a5e61]"
+                          ? "text-red-500 animate-shake"
+                          : "text-[#5a5e61]"
                     }`}
                     style={{ margin: "0 1rem" }}
                   >
@@ -1615,8 +1615,8 @@ export default function Home() {
               isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                ? "text-green-500"
-                : "text-white"
+                  ? "text-green-500"
+                  : "text-white"
             }`}
           >
             {isSuccess

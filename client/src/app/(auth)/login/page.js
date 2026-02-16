@@ -1,5 +1,8 @@
-import React from "react";
-import { Space_Mono } from 'next/font/google';
+"use client";
+
+import React, { useState } from 'react'
+import { Space_Mono } from 'next/font/google'
+import { useAuth } from '@/contexts/AuthContext'
 
 const spmono = Space_Mono({
   subsets: ['latin'],
@@ -7,8 +10,45 @@ const spmono = Space_Mono({
 })
 
 function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+          const res = await fetch(
+            "https://morsecode-production.up.railway.app/api/auth/login",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email, password }),
+            }
+          );
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.message || "Login failed");
+            return;
+          }
+
+          // Use login function from AuthContext
+          login(data.token, data.user);
+        } catch (err) {
+          alert("Server error");
+        } finally {
+          setLoading(false);
+        }
+    }
+
   return (
     <div className="w-full max-w-176.25">
+        <form onSubmit={handleSubmit}>
         <div
         className="
         max-w-176.25
@@ -24,10 +64,13 @@ function LoginPage() {
             login
         </p>
         <div className="flex flex-col">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>username</label>
+            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email</label>
             <input 
+                type="email"
                 className={`w-135 h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
-                placeholder="Enter username"
+                placeholder="Enter email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
             />
         </div>
         <div className="flex flex-col">
@@ -36,14 +79,17 @@ function LoginPage() {
                 type="password"
                 className={`w-135 h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
                 placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
             />
         </div>
-        <button className={`${spmono.className} font-bold text-white text-[32px] w-70 h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105`}>
+        <button onClick={handleSubmit} className={`${spmono.className} font-bold text-white text-[32px] w-70 h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105`}>
             login
         </button>
         <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Don&apos;t have an account?</p>
         <a href="/register" className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Register</a>
         </div>
+        </form>
     </div>
   );
 }
