@@ -4,6 +4,7 @@ import React from 'react'
 import { usePathname } from 'next/navigation';
 import { Space_Mono } from 'next/font/google';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
 const spmono = Space_Mono({
   subsets: ['latin'],
@@ -12,6 +13,7 @@ const spmono = Space_Mono({
 
 function Mainlayout({ children }) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <ProtectedRoute>
@@ -24,7 +26,9 @@ function Mainlayout({ children }) {
                   <a href='/about' className={`${spmono.className} font-bold transition-colors duration-300 hover:text-white ${pathname === '/about' ? 'text-white' : 'text-[#9CA3AF]'}`}>about</a>
               </div>
               <a href='/profile' className={`${spmono.className} w-12 h-12 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[14px] text-white outline outline-[#EF4444]`}>
-                <p className='mb-1'>jp</p>
+                <p className='mb-1'>
+                  {user?.username ? user.username.slice(0, 2).toUpperCase() : 'JP'}
+                </p>
               </a>
           </nav>
           <div className='w-full px-7'>
@@ -35,5 +39,6 @@ function Mainlayout({ children }) {
     </ProtectedRoute>
   )
 }
+
 
 export default Mainlayout

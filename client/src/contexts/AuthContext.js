@@ -11,9 +11,9 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    // Check if user is logged in on mount (check localStorage first, then sessionStorage)
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
     
     if (token && userData) {
       setUser(JSON.parse(userData));
@@ -21,9 +21,10 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = (token, userData, rememberMe = false) => {
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem('token', token);
+    storage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     router.push('/');
   };
@@ -31,6 +32,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setUser(null);
     router.push('/login');
   };

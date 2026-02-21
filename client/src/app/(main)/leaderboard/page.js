@@ -10,42 +10,80 @@ const spmono = Space_Mono({
 
 export default function Leaderboard() {
   const [selectedMode, setSelectedMode] = useState('character');
+  const [mode, setMode] = useState('decode');
+  const [type, setType] = useState('a-z');
+  const [length, setLength] = useState('10');
 
   return (
     <div className="">
-      <div className="flex justify-evenly py-10">
-        <button 
-          onClick={() => setSelectedMode('character')}
-          className={`${spmono.className} font-bold px-4 py-2 rounded transition-colors ${
-            selectedMode === 'character' ? 'text-[#EF4444]' : 'text-[#9CA3AF] hover:text-white'
-          }`}
+      <div className="flex justify-center items-center py-14">
+        <div
+          className={`${spmono.className} font-bold w-[705px] h-[65px] bg-[#1E2332] rounded-xl flex items-center justify-between`}
         >
-          Character to morse
-        </button>
-        <button 
-          onClick={() => setSelectedMode('words')}
-          className={`${spmono.className} font-bold px-4 py-2 rounded transition-colors ${
-            selectedMode === 'words' ? 'text-[#EF4444]' : 'text-[#9CA3AF] hover:text-white'
-          }`}
-        >
-          Words to morse
-        </button>
-        <button 
-          onClick={() => setSelectedMode('morseChar')}
-          className={`${spmono.className} font-bold px-4 py-2 rounded transition-colors ${
-            selectedMode === 'morseChar' ? 'text-[#EF4444]' : 'text-[#9CA3AF] hover:text-white'
-          }`}
-        >
-          Morse to character
-        </button>
-        <button 
-          onClick={() => setSelectedMode('morseWords')}
-          className={`${spmono.className} font-bold px-4 py-2 rounded transition-colors ${
-            selectedMode === 'morseWords' ? 'text-[#EF4444]' : 'text-[#9CA3AF] hover:text-white'
-          }`}
-        >
-          Morse to words
-        </button>
+          <button
+            onClick={() => setMode("decode")}
+            className={`pl-10 pr-4 py-4 transition-colors duration-300 ${
+              mode === "decode"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+            }`}
+          >
+            decode
+          </button>
+
+          <button
+            onClick={() => setMode("encode")}
+            className={`px-4 py-4 transition-colors duration-300 ${
+              mode === "encode"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+            }`}
+          >
+            encode
+          </button>
+
+          <p className="text-[#9CA3AF]">|</p>
+
+          <button
+            onClick={() => setType("a-z")}
+            className={`px-4 py-4 transition-colors duration-300 ${
+              type === "a-z"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+            }`}
+          >
+            a-z
+          </button>
+
+          <button
+            onClick={() => setType("word")}
+            className={`px-4 py-4 transition-colors duration-300 ${
+              type === "word"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+            }`}
+          >
+            word
+          </button>
+
+          <p className="text-[#9CA3AF]">|</p>
+
+          <div className="flex">
+            {["10", "15", "50", "100"].map((len) => (
+              <button
+                key={len}
+                onClick={() => setLength(len)}
+                className={`px-4 py-4 transition-colors duration-300 ${
+                  length === len
+                    ? "text-[#EF4444]"
+                    : "text-[#9CA3AF] hover:text-white"
+                } ${len === "100" ? "pr-10" : ""}`}
+              >
+                {len}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       <div className="flex">
         <div className="w-[300px] h-[520px] bg-[#1E2332] rounded-xl">

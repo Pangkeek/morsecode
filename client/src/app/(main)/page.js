@@ -1309,8 +1309,8 @@ export default function Home() {
                         isPast
                           ? "text-white"
                           : isCurrent && isError
-                            ? "text-red-500 animate-shake"
-                            : "text-[#5a5e61]"
+                          ? "text-red-500 animate-shake"
+                          : "text-[#5a5e61]"
                       }`}
                       style={{ margin: "0 1rem" }}
                     >
@@ -1374,8 +1374,8 @@ export default function Home() {
               isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                  ? "text-green-500"
-                  : "text-white"
+                ? "text-green-500"
+                : "text-white"
             }`}
           >
             {isSuccess
@@ -1547,8 +1547,8 @@ export default function Home() {
                       isPast
                         ? "text-white"
                         : isCurrent && isError
-                          ? "text-red-500 animate-shake"
-                          : "text-[#5a5e61]"
+                        ? "text-red-500 animate-shake"
+                        : "text-[#5a5e61]"
                     }`}
                     style={{ margin: "0 1rem" }}
                   >
@@ -1615,8 +1615,8 @@ export default function Home() {
               isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                  ? "text-green-500"
-                  : "text-white"
+                ? "text-green-500"
+                : "text-white"
             }`}
           >
             {isSuccess
