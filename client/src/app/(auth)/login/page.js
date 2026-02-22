@@ -50,17 +50,17 @@ function LoginPage() {
 
 
   return (
-    <div className="w-full max-w-176.25">
+    <div className="w-full max-w-md px-4">
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="w-full">
 
         <div
 
         className="
 
-        max-w-176.25
+        w-full
 
-        min-h-162.5
+        min-h-[260px]
 
         bg-[#1E2332]
 
@@ -72,7 +72,9 @@ function LoginPage() {
 
         items-center
 
-        justify-center"
+        justify-center
+
+        p-6"
 
         >
 
@@ -82,7 +84,7 @@ function LoginPage() {
 
         </p>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
 
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email</label>
 
@@ -90,7 +92,7 @@ function LoginPage() {
 
                 type="email"
 
-                className={`w-135 h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
+                className={`w-full h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
 
                 placeholder="Enter email"
 
@@ -102,7 +104,7 @@ function LoginPage() {
 
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
 
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>password</label>
 
@@ -110,7 +112,7 @@ function LoginPage() {
 
                 type="password"
 
-                className={`w-135 h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
+                className={`w-full h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
 
                 placeholder="Enter password"
 
@@ -122,7 +124,7 @@ function LoginPage() {
 
         </div>
 
-        <div className="flex items-center w-135 mt-4">
+        <div className="flex items-center w-full mt-4">
             <input 
                 type="checkbox"
                 id="rememberMe"
@@ -135,7 +137,7 @@ function LoginPage() {
             </label>
         </div>
 
-        <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-70 h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed`}>
+        <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed`}>
             {loading ? 'logging in...' : 'login'}
         </button>
 

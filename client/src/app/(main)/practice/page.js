@@ -157,7 +157,7 @@ export default function Practice() {
   return (
     <div className="flex flex-col items-center min-h-[calc(100vh-200px)] px-4 py-8 mt-10">
       {/* All characters grid */}
-      <div className="grid grid-cols-10 gap-x-10 gap-y-10 mb-15">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-4 md:gap-6 lg:gap-x-10 lg:gap-y-10 mb-15">
         {allLetters.map((letter, index) => {
           const isCompleted = completed.has(letter);
           const isCurrent = index === currentIndex;
@@ -168,7 +168,7 @@ export default function Practice() {
               className="flex flex-col items-center"
             >
               {/* Character */}
-              <p className={`${spmono.className} text-[48px] font-bold transition-colors duration-300 ${
+              <p className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${
                 isSuccess && isCurrent
                   ? 'text-green-500'
                   : isError && isCurrent
@@ -180,7 +180,7 @@ export default function Practice() {
                 {letter}
               </p>
               {/* Morse code */}
-              <p className={`${spmono.className} text-[24px] font-bold transition-colors duration-300 ${
+              <p className={`${spmono.className} text-lg sm:text-xl md:text-[24px] font-bold transition-colors duration-300 ${
                 isSuccess && isCurrent
                   ? 'text-green-500'
                   : isError && isCurrent
@@ -207,7 +207,7 @@ export default function Practice() {
       />
 
       {/* Current input display */}
-      <p className={`${spmono.className} text-[48px] font-bold transition-colors duration-300 mt-5 ${
+      <p className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 mt-5 ${
         isError ? 'text-red-500 animate-shake' : isSuccess ? 'text-green-500' : 'text-white'
       }`}>{isSuccess ? morseCodeMap[currentLetter] : (morseInput || <span className="text-[24px] text-[#9CA3AF]">press spacebar</span>)}</p>
 

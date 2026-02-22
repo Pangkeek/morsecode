@@ -17,7 +17,7 @@ export function ProtectedRoute({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#141720] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-base sm:text-xl">Loading...</div>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export function ProtectedRoute({ children }) {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#141720] flex items-center justify-center">
-        <div className="text-white text-xl">Redirecting to login...</div>
+        <div className="text-white text-base sm:text-xl">Redirecting to login...</div>
       </div>
     );
   }
