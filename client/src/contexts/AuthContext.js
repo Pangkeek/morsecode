@@ -38,11 +38,42 @@ export function AuthProvider({ children }) {
     router.push('/login');
   };
 
+  const submitGameResult = async (gameData) => {
+    try {
+      // Placeholder - backend endpoint not ready yet
+      console.log('PLACEHOLDER: Game data that would be sent to backend:', gameData);
+      
+      // TODO: Replace with actual API call when backend is ready
+      // const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      // const response = await fetch('https://morsecode-production.up.railway.app/api/results', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${token}`
+      //   },
+      //   body: JSON.stringify(gameData)
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Failed to submit game result');
+      // }
+      
+      // return await response.json();
+      
+      // Placeholder response
+      return { success: true, message: 'Placeholder - data logged to console' };
+    } catch (error) {
+      console.error('Error submitting game result:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
-    loading
+    loading,
+    submitGameResult
   };
 
   return (

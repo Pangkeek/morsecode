@@ -39,7 +39,7 @@ function LoginPage() {
           }
 
           // Use login function from AuthContext
-          login(data.token, data.user, rememberMe);
+          login(data.token, data.user);
         } catch (err) {
           alert("Server error");
         } finally {
@@ -50,81 +50,44 @@ function LoginPage() {
 
 
   return (
-    <div className="w-full max-w-md px-4">
-
-        <form onSubmit={handleSubmit} className="w-full">
-
+    <div className="w-full max-w-[705px] px-4 sm:px-0">
+        <form onSubmit={handleSubmit}>
         <div
-
         className="
-
-        w-full
-
-        min-h-[260px]
-
+        max-w-[705px]
+        min-h-[650px]
         bg-[#1E2332]
-
         rounded-xl
-
         flex
-
         flex-col
-
         items-center
-
         justify-center
-
-        p-6"
-
+        px-4 sm:px-0"
         >
-
         <p className={`${spmono.className} font-bold text-white text-[32px]`}>
-
             login
-
         </p>
-
-        <div className="flex flex-col w-full">
-
+        <div className="flex flex-col w-full sm:w-auto">
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email</label>
-
             <input 
-
                 type="email"
-
-                className={`w-full h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
-
+                className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
                 placeholder="Enter email"
-
                 value={email}
-
                 onChange={(e) => setEmail(e.target.value)}
-
             />
-
         </div>
-
-        <div className="flex flex-col w-full">
-
+        <div className="flex flex-col w-full sm:w-auto">
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>password</label>
-
             <input 
-
                 type="password"
-
-                className={`w-full h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] px-6`}
-
+                className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
                 placeholder="Enter password"
-
                 value={password}
-
                 onChange={(e) => setPassword(e.target.value)}
-
             />
-
         </div>
-
-        <div className="flex items-center w-full mt-4">
+        <div className="flex items-center w-full sm:w-[540px] mt-4">
             <input 
                 type="checkbox"
                 id="rememberMe"
@@ -136,21 +99,14 @@ function LoginPage() {
                 Remember me
             </label>
         </div>
-
-        <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed`}>
+        <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {loading ? 'logging in...' : 'login'}
         </button>
-
         <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Don&apos;t have an account?</p>
-
-        <a href="/register" className={`${spmono.className} font-bold text-white text-[14px] underline transition-colors duration-300 hover:text-[#EF4444]`}>Register</a>
-
+        <a href="/register" className={`${spmono.className} font-bold text-white text-[14px] underline`}>Register</a>
         </div>
-
         </form>
-
     </div>
-
   );
 
 }

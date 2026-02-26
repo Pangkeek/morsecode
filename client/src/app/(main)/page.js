@@ -5,6 +5,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 
 import { Space_Mono } from "next/font/google";
+import { useAuth } from "@/contexts/AuthContext";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
@@ -13,6 +14,7 @@ const spmono = Space_Mono({
 });
 
 export default function Home() {
+  const { submitGameResult } = useAuth();
   const [mode, setMode] = useState("encode");
 
   const [type, setType] = useState("a-z");
@@ -36,6 +38,81 @@ export default function Home() {
   const [decodeWordIndex, setDecodeWordIndex] = useState(0);
 
   const [decodeLetterInWordIndex, setDecodeLetterInWordIndex] = useState(0);
+
+  // Session tracking for data collection
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [firstInputTime, setFirstInputTime] = useState(null);
+  const [mistakeCount, setMistakeCount] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [sessionCompletedTime, setSessionCompletedTime] = useState(null);
+
+  // Session tracking functions
+  const startSession = () => {
+    const now = Date.now();
+    setSessionStartTime(now);
+    setFirstInputTime(null);
+    setMistakeCount(0);
+    setTotalAttempts(0);
+    setSessionCompletedTime(null);
+  };
+
+  const recordFirstInput = () => {
+    if (!firstInputTime) {
+      setFirstInputTime(Date.now());
+    }
+  };
+
+  const recordMistake = () => {
+    setMistakeCount(prev => prev + 1);
+    setTotalAttempts(prev => prev + 1);
+  };
+
+  const recordAttempt = () => {
+    setTotalAttempts(prev => prev + 1);
+  };
+
+  const calculateMetrics = () => {
+    if (!firstInputTime || !sessionCompletedTime) return null;
+    
+    const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
+    const minutesElapsed = timeTaken / 60;
+    
+    // Calculate characters/words completed
+    let charactersCompleted = 0;
+    if (type === "word") {
+      if (mode === "encode") {
+        charactersCompleted = encodeWordIndex * 5 + encodeLetterInWordIndex; // rough estimate
+      } else {
+        charactersCompleted = decodeWordIndex * 5 + decodeLetterInWordIndex; // rough estimate
+      }
+    } else {
+      charactersCompleted = currentCharIndex;
+    }
+    
+    const wpm = minutesElapsed > 0 ? Math.round((charactersCompleted / 5) / minutesElapsed) : 0;
+    const accuracy = totalAttempts > 0 ? Math.round(((totalAttempts - mistakeCount) / totalAttempts) * 100) : 100;
+    
+    return {
+      mode,
+      letterMode: type,
+      letterCount: parseInt(length),
+      accuracy,
+      wpm,
+      timeTaken: Math.round(timeTaken)
+    };
+  };
+
+  const submitSessionData = async () => {
+    const metrics = calculateMetrics();
+    if (metrics) {
+      try {
+        await submitGameResult(metrics);
+        console.log('Game result submitted successfully:', metrics);
+      } catch (error) {
+        console.error('Failed to submit game result:', error);
+      }
+    }
+  };
 
   // Use the appropriate index based on current mode
 
@@ -753,6 +830,9 @@ export default function Home() {
         setIsSpacebarPressed(true);
 
         setSpacebarStartTime(Date.now());
+        
+        // Record first input time and start session tracking
+        recordFirstInput();
 
         // Clear any existing timeout when user starts typing
 
@@ -787,6 +867,9 @@ export default function Home() {
         setSuccessDisplay("");
 
         setIsCompleted(false);
+
+        // Start new session tracking
+        startSession();
 
         if (inputTimeout) {
           clearTimeout(inputTimeout);
@@ -869,6 +952,8 @@ export default function Home() {
             setMorseInput("");
 
             setCharInput("");
+            
+            recordAttempt();
 
             setTimeout(() => {
               setIsSuccess(false);
@@ -882,6 +967,7 @@ export default function Home() {
             // Error - wrong character
 
             setIsError(true);
+            recordMistake();
 
             setTimeout(() => {
               setIsError(false);
@@ -925,6 +1011,7 @@ export default function Home() {
 
               if (!expectedMorse.startsWith(newInput)) {
                 setIsError(true);
+                recordMistake();
 
                 setTimeout(() => {
                   setIsError(false);
@@ -934,6 +1021,8 @@ export default function Home() {
                 setIsSuccess(true);
 
                 setSuccessDisplay(newInput);
+                
+                recordAttempt();
 
                 const isLastLetterInWord =
                   encodeLetterInWordIndex === encodeCurrentWord.length - 1;
@@ -960,6 +1049,7 @@ export default function Home() {
               } else {
                 const timeout = setTimeout(() => {
                   setIsError(true);
+                  recordMistake();
 
                   setTimeout(() => {
                     setIsError(false);
@@ -977,6 +1067,7 @@ export default function Home() {
 
             if (!expectedMorse.startsWith(newInput)) {
               setIsError(true);
+              recordMistake();
 
               setTimeout(() => {
                 setIsError(false);
@@ -986,6 +1077,8 @@ export default function Home() {
               setIsSuccess(true);
 
               setSuccessDisplay(newInput);
+              
+              recordAttempt();
 
               const isLastChar = currentCharIndex === targetLetters.length - 1;
 
@@ -998,11 +1091,13 @@ export default function Home() {
 
                 setSuccessDisplay("");
 
-                if (isLastChar) setIsCompleted(true);
+                if (isLastChar)
+                  setIsCompleted(true);
               }, 500);
             } else {
               const timeout = setTimeout(() => {
                 setIsError(true);
+                recordMistake();
 
                 setTimeout(() => {
                   setIsError(false);
@@ -1075,6 +1170,14 @@ export default function Home() {
 
     decodeCurrentMorse,
   ]);
+
+  // Handle session completion and API submission
+  React.useEffect(() => {
+    if (isCompleted && !sessionCompletedTime) {
+      setSessionCompletedTime(Date.now());
+      submitSessionData();
+    }
+  }, [isCompleted, sessionCompletedTime]);
 
   return (
     <div className="flex flex-col items-center px-4 w-full">
@@ -1191,7 +1294,7 @@ export default function Home() {
                 </p>
 
                 <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
-                  53
+                  {calculateMetrics()?.wpm || 0}
                 </p>
               </div>
 
@@ -1203,7 +1306,7 @@ export default function Home() {
                 </p>
 
                 <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
-                  90%
+                  {calculateMetrics()?.accuracy || 0}%
                 </p>
               </div>
 
@@ -1215,7 +1318,7 @@ export default function Home() {
                 </p>
 
                 <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
-                  99s
+                  {calculateMetrics()?.timeTaken || 0}s
                 </p>
               </div>
             </div>
@@ -1241,7 +1344,7 @@ export default function Home() {
                 </p>
 
                 <p className={`${spmono.className} text-[#EF4444] text-[20px]`}>
-                  56/87/21%
+                  {new Date().toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -1283,6 +1386,9 @@ export default function Home() {
               setIsCompleted(false);
 
               setIsFading(false);
+
+              // Reset session tracking
+              startSession();
 
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
