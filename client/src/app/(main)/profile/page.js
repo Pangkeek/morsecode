@@ -14,6 +14,10 @@ export default function Profile() {
   const { user, logout, refreshUser } = useAuth();
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [bestScores, setBestScores] = useState([]);
+  const [loadingBestScores, setLoadingBestScores] = useState(true);
+  const [globalWeaknesses, setGlobalWeaknesses] = useState([]);
+  const [loadingGlobalWeaknesses, setLoadingGlobalWeaknesses] = useState(true);
   const [selectedSession, setSelectedSession] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -49,7 +53,51 @@ export default function Profile() {
       }
     };
 
+    const fetchBestScores = async () => {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) return;
+
+        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const res = await fetch(`${API_URL}/user-mode-status`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setBestScores(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch best scores:", err);
+      } finally {
+        setLoadingBestScores(false);
+      }
+    };
+
+    const fetchGlobalWeaknesses = async () => {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) return;
+
+        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const res = await fetch(`${API_URL}/play-sessions/weakness/global`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalWeaknesses(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global weaknesses:", err);
+      } finally {
+        setLoadingGlobalWeaknesses(false);
+      }
+    };
+
     fetchHistory();
+    fetchBestScores();
+    fetchGlobalWeaknesses();
   }, [user]);
 
   const handleLogout = () => {
@@ -214,6 +262,39 @@ export default function Profile() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Global Weaknesses Section */}
+        <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
+          ตาวิเศษ (Global Weakness)
+        </h1>
+        <p className="text-[#9CA3AF] mb-4">The characters you have missed the most across all your play sessions.</p>
+
+        <div className="flex flex-wrap gap-4 mb-10">
+          {loadingGlobalWeaknesses ? (
+            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white">Loading weakness analysis...</div>
+          ) : globalWeaknesses.length === 0 ? (
+            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white flex flex-col items-center">
+              <span className="text-3xl mb-2">🎉</span>
+              <p>You have no recorded mistakes! Perfect accuracy!</p>
+            </div>
+          ) : (
+            globalWeaknesses.map((weakness, index) => (
+              <div key={weakness.character} className={`flex flex-col items-center justify-center p-4 rounded-xl shadow-lg border-b-4 ${index === 0 ? 'bg-[#ef444420] border-[#ef4444]' : 'bg-[#1E2332] border-[#2A3247]'} flex-1 min-w-[120px]`}>
+                <div className={`text-4xl font-bold mb-2 ${index === 0 ? 'text-[#ef4444]' : 'text-white'}`}>
+                  {weakness.character.toUpperCase()}
+                </div>
+                <div className="text-sm text-gray-400 capitalize bg-[#252B3D] px-3 py-1 rounded-full">
+                  {weakness.errorCount} mistakes
+                </div>
+                {index === 0 && (
+                  <div className="mt-2 text-xs font-bold text-[#ef4444] tracking-wider uppercase">
+                    Highest Error Rate
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
         <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
           Play History
@@ -551,6 +632,6 @@ export default function Profile() {
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

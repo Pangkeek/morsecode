@@ -34,6 +34,49 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/play-sessions/weakness/global - Aggregates historical mistakes
+router.get('/weakness/global', async (req, res) => {
+    try {
+        // Query SessionDetails where user made a mistake, across all of their sessions
+        const mistakes = await req.prisma.sessionDetail.findMany({
+            where: {
+                playSession: {
+                    userId: req.user.id
+                },
+                isCorrect: false
+            },
+            select: {
+                question: true,
+                correctAnswer: true
+            }
+        });
+
+        if (mistakes.length === 0) {
+            return res.json([]);
+        }
+
+        // Aggregate counts by character
+        const charCounts = {};
+        mistakes.forEach(m => {
+            const char = m.correctAnswer || m.question;
+            if (char) {
+                charCounts[char] = (charCounts[char] || 0) + 1;
+            }
+        });
+
+        // Convert to array and sort descending
+        const sortedWeaknesses = Object.entries(charCounts)
+            .map(([character, errorCount]) => ({ character, errorCount }))
+            .sort((a, b) => b.errorCount - a.errorCount);
+
+        // Return top 5 weaknesses
+        res.json(sortedWeaknesses.slice(0, 5));
+    } catch (error) {
+        console.error('Global weakness error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // GET /api/play-sessions/:id - Get a specific play session with details
 router.get('/:id', async (req, res) => {
     try {

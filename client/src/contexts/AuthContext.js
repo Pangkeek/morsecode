@@ -102,6 +102,28 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const fetchUserInfo = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const API_URL = "https://morsecode-production.up.railway.app/api";
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        // Also update storage
+        const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
+        storage.setItem('user', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+  };
+
   const value = {
     user,
     login,

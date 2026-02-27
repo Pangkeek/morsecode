@@ -111,7 +111,7 @@ export default function Home() {
       return null;
     }
 
-    const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
+    const timeTaken = (finalCompTime - firstInputTime) / 1000; // in seconds
     const minutesElapsed = timeTaken / 60;
 
     // Calculate characters/words completed
@@ -938,6 +938,7 @@ export default function Home() {
         e.key.match(/[a-zA-Z]/)
       ) {
         const newCharInput = e.key.toUpperCase();
+        recordFirstInput();
 
         setCharInput(newCharInput);
         
@@ -957,6 +958,7 @@ export default function Home() {
 
             if (expectedLetter && expectedLetter === newCharInput) {
               recordDetail(currentMorse, newCharInput, expectedLetter, true);
+              recordAttempt();
               setIsSuccess(true);
 
               setSuccessDisplay(newCharInput);
@@ -987,6 +989,7 @@ export default function Home() {
               }, 500);
             } else {
               recordDetail(currentMorse, newCharInput, expectedLetter || '', false);
+              recordMistake();
               setIsError(true);
 
               setTimeout(() => {

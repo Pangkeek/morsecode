@@ -20,8 +20,7 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Send username and password as expected by server code
-      let res = await fetch(
+      const res = await fetch(
         "https://morsecode-production.up.railway.app/api/auth/login",
         {
           method: "POST",

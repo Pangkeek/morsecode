@@ -22,6 +22,35 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// GET /api/auth/me - Get current user data
+router.get('/me', authenticateToken, async (req, res) => {
+    try {
+        const user = await req.prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: { settings: true }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            totalPlay: user.totalPlay,
+            rank: user.rank,
+            avgWpm: user.avgWpm,
+            avgAccuracy: user.avgAccuracy,
+            role: user.role,
+            createdAt: user.createdAt
+        });
+    } catch (error) {
+        console.error('Get user info error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
@@ -66,7 +95,7 @@ router.post('/register', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -98,7 +127,7 @@ router.post('/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+            return res.status(400).json({ error: 'Email and password are required' });
         }
 
         // Find user by username or email (reusing the 'username' variable from req.body)
@@ -124,7 +153,7 @@ router.post('/login', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -170,6 +199,7 @@ router.get('/me', authenticateToken, async (req, res) => {
             rank: user.rank,
             avgWpm: user.avgWpm,
             avgAccuracy: user.avgAccuracy,
+            role: user.role,
             settings: user.settings,
             createdAt: user.createdAt
         });
