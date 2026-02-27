@@ -67,4 +67,49 @@ router.get('/metrics', async (req, res) => {
     }
 });
 
+// GET /api/admin/contents - Get all game content with human-readable names
+router.get('/contents', async (req, res) => {
+    try {
+        const contents = await req.prisma.content.findMany({
+            include: {
+                mode: true,
+                difficulty: true,
+                symbol: true
+            },
+            orderBy: [
+                { modeId: 'asc' },
+                { symbolId: 'asc' },
+                { difficultyId: 'asc' }
+            ]
+        });
+
+        res.json(contents);
+    } catch (error) {
+        console.error('Admin contents error:', error);
+        res.status(500).json({ error: 'Internal server error while fetching content' });
+    }
+});
+
+// PUT /api/admin/contents/:id - Update game content
+router.put('/contents/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+
+        if (!content) {
+            return res.status(400).json({ error: 'Content is required' });
+        }
+
+        const updated = await req.prisma.content.update({
+            where: { id: parseInt(id) },
+            data: { content }
+        });
+
+        res.json(updated);
+    } catch (error) {
+        console.error('Admin content update error:', error);
+        res.status(500).json({ error: 'Internal server error while updating content' });
+    }
+});
+
 module.exports = router;
