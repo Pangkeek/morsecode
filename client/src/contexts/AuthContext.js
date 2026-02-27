@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
   const submitGameResult = async (gameData) => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      // Using localhost for local development, users can change this to their railway URL if deployed
-      const API_URL = "http://localhost:5000/api";
+      // Using production URL
+      const API_URL = "https://morsecode-production.up.railway.app/api";
 
       const response = await fetch(`${API_URL}/play-sessions`, {
         method: 'POST',

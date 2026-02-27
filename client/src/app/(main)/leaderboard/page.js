@@ -20,7 +20,7 @@ export default function Leaderboard() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const API_URL = "http://localhost:5000/api";
+        const API_URL = "https://morsecode-production.up.railway.app/api";
         const res = await fetch(`${API_URL}/leaderboard`);
 
         if (res.ok) {
@@ -82,8 +82,8 @@ export default function Leaderboard() {
             <button
               onClick={() => setMode("decode")}
               className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300 ${mode === "decode"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
                 }`}
             >
               decode
@@ -91,8 +91,8 @@ export default function Leaderboard() {
             <button
               onClick={() => setMode("encode")}
               className={`px-4 py-4 transition-colors duration-300 ${mode === "encode"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
                 }`}
             >
               encode
@@ -101,8 +101,8 @@ export default function Leaderboard() {
             <button
               onClick={() => setType("a-z")}
               className={`px-4 py-4 transition-colors duration-300 ${type === "a-z"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
                 }`}
             >
               a-z
@@ -110,8 +110,8 @@ export default function Leaderboard() {
             <button
               onClick={() => setType("word")}
               className={`px-4 py-4 transition-colors duration-300 ${type === "word"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
                 }`}
             >
               word
@@ -123,8 +123,8 @@ export default function Leaderboard() {
                   key={len}
                   onClick={() => setLength(len)}
                   className={`px-4 py-4 transition-colors duration-300 ${length === len
-                      ? "text-[#EF4444]"
-                      : "text-[#9CA3AF] hover:text-white"
+                    ? "text-[#EF4444]"
+                    : "text-[#9CA3AF] hover:text-white"
                     } ${len === "100" ? "pr-10" : ""}`}
                 >
                   {len}

@@ -921,6 +921,7 @@ export default function Home() {
         e.key.match(/[a-zA-Z]/)
       ) {
         const newCharInput = e.key.toUpperCase();
+        recordFirstInput();
 
         setCharInput(newCharInput);
 

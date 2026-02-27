@@ -31,7 +31,7 @@ export default function AdminDashboard() {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 if (!token) return;
 
-                const API_URL = "http://localhost:5000/api";
+                const API_URL = "https://morsecode-production.up.railway.app/api";
                 const res = await fetch(`${API_URL}/admin/metrics`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

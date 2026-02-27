@@ -21,7 +21,7 @@ function LoginPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/login",
+        "https://morsecode-production.up.railway.app/api/auth/login",
         {
           method: "POST",
           headers: {
