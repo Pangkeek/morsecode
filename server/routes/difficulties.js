@@ -43,7 +43,8 @@ router.post('/seed', async (req, res) => {
         const difficulties = [
             { name: 'easy', amtWord: 10 },
             { name: 'medium', amtWord: 15 },
-            { name: 'hard', amtWord: 50 }
+            { name: 'hard', amtWord: 50 },
+            { name: 'expert', amtWord: 100 }
         ];
 
         for (const diff of difficulties) {

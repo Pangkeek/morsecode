@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ER Diagram - Morse Code App</title>
+    <style>
+        body { 
+            background: white; 
+            display: flex; 
+            justify-content: center; 
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #diagram { 
+            width: 100%; 
+            max-width: 1400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="diagram">
+        <h1>ER Diagram - Morse Code App (Proposed)</h1>
+        <pre class="mermaid">
+erDiagram
+    User ||--o{ PlaySession : "has many"
+    User ||--o{ UserModeStatus : "has many"
+    User ||--|| Settings : "has one"
+    Mode ||--o{ PlaySession : "has many"
+    Mode ||--o{ UserModeStatus : "has many"
+    Mode ||--o{ Content : "has many"
+    Symbol ||--o{ PlaySession : "has many"
+    Symbol ||--o{ UserModeStatus : "has many"
+    Symbol ||--o{ Content : "has many"
+    Symbol ||--o{ SessionDetail : "has many"
+    Difficulty ||--o{ PlaySession : "has many"
+    Difficulty ||--o{ UserModeStatus : "has many"
+    Difficulty ||--o{ Content : "has many"
+    PlaySession ||--o{ SessionDetail : "has many"
+
+    User {
+        int id PK
+        string username UK
+        string password
+        datetime createdAt
+        int totalPlay
+        int rank
+        float avgWpm
+        float avgAccuracy
+    }
+
+    Settings {
+        int id PK
+        int userId FK
+        string theme
+        int soundVolume
+        boolean showHints
+    }
+
+    Mode {
+        int id PK
+        string name UK
+    }
+
+    Symbol {
+        int id PK
+        string name UK
+    }
+
+    Difficulty {
+        int id PK
+        string name UK
+        int amtWord
+    }
+
+    PlaySession {
+        int id PK
+        int userId FK
+        int modeId FK
+        int difficultyId FK
+        int symbolId FK
+        float wpm
+        float accuracy
+        int mistakeCount
+        int timeTaken
+        datetime createdAt
+    }
+
+    SessionDetail {
+        int id PK
+        int sessionId FK
+        int symbolId FK
+        string question
+        string userAnswer
+        string correctAnswer
+        boolean isCorrect
+        int responseTime
+        int orderIndex
+    }
+
+    UserModeStatus {
+        int id PK
+        int userId FK
+        int modeId FK
+        int difficultyId FK
+        int symbolId FK
+        float highWpm
+        float highAccuracy
+        float totalScore
+        int mistakeCount
+        int time
+        int realTime
+        datetime updatedAt
+    }
+
+    Content {
+        int id PK
+        int modeId FK
+        int difficultyId FK
+        int symbolId FK
+        string content
+    }
+        </pre>
+    </div>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

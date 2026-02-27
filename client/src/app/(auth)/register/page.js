@@ -10,47 +10,47 @@ const spmono = Space_Mono({
 })
 
 function RegisterPage() {
-    const [email, setEmail] = useState("");
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-          const res = await fetch(
-            "https://morsecode-production.up.railway.app/api/auth/register",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email, password, username }),
-            }
-          );
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            alert(data.message || "Register failed");
-            return;
-          }
-
-          // Use login function from AuthContext
-          login(data.token, data.user);
-        } catch (err) {
-          alert("Server error");
-        } finally {
-          setLoading(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, username, password }),
         }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || data.message || "Register failed");
+        return;
+      }
+
+      // Use login function from AuthContext
+      login(data.token, data.user);
+    } catch (err) {
+      alert("Server error");
+    } finally {
+      setLoading(false);
     }
+  }
   return (
     <div className="w-full max-w-[705px] px-4 sm:px-0">
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div
-        className="
+          className="
         max-w-[705px]
         min-h-[650px]
         bg-[#1E2332]
@@ -61,46 +61,46 @@ function RegisterPage() {
         justify-center
         px-4 sm:px-0"
         >
-        <p className={`${spmono.className} font-bold text-white text-[32px] mt-10`}>
+          <p className={`${spmono.className} font-bold text-white text-[32px] mt-10`}>
             register
-        </p>
-        <div className="flex flex-col w-full sm:w-auto">
+          </p>
+          <div className="flex flex-col w-full sm:w-auto">
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email</label>
-            <input 
-                type="email"
-                className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
-                placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+            <input
+              type="email"
+              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-        </div>
-        <div className="flex flex-col w-full sm:w-auto">
+          </div>
+          <div className="flex flex-col w-full sm:w-auto">
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>username</label>
-            <input 
-                type="text"
-                className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+            <input
+              type="text"
+              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
-        </div>
-        <div className="flex flex-col w-full sm:w-auto">
+          </div>
+          <div className="flex flex-col w-full sm:w-auto">
             <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>password</label>
-            <input 
-                type="password"
-                className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+            <input
+              type="password"
+              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-        </div>
-        <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          </div>
+          <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {loading ? 'registering...' : 'register'}
-        </button>
-        <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Already have an account?</p>
-        <a href="/login" className={`${spmono.className} font-bold text-white text-[14px] underline mb-10`}>Log in</a>
+          </button>
+          <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Already have an account?</p>
+          <a href="/login" className={`${spmono.className} font-bold text-white text-[14px] underline mb-10`}>Log in</a>
         </div>
-        </form>
+      </form>
     </div>
   )
 }

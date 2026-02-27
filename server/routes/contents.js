@@ -59,6 +59,53 @@ router.get('/:modeId/:difficultyId/:symbolId', async (req, res) => {
     }
 });
 
+// POST /api/contents/seed - Seed content data
+router.post('/seed', async (req, res) => {
+    try {
+        const words = "HELLO WORLD MORSE CODE PRACTICE REACT NEXTJS EXPRESS PRISMA DATABASE POSTGRESQL API FULLSTACK DEVELOPER";
+        const contentPieces = words.split(" ");
+
+        let counter = 0;
+
+        // Let's seed word contents for both encode and decode, for varying difficulties
+        for (let modeId = 1; modeId <= 2; modeId++) { // encode, decode
+            for (let difficultyId = 1; difficultyId <= 4; difficultyId++) { // 10, 15, 50, 100
+                const numWords = difficultyId === 1 ? 10 : (difficultyId === 2 ? 15 : (difficultyId === 3 ? 50 : 100));
+
+                // Shuffle array
+                const shuffled = [...contentPieces].sort(() => 0.5 - Math.random());
+                // Build content string with requested length by repeating words
+                let contentText = "";
+                while (contentText.split(" ").length - 1 < numWords) {
+                    contentText += shuffled[Math.floor(Math.random() * shuffled.length)] + " ";
+                }
+
+                await req.prisma.content.upsert({
+                    where: {
+                        modeId_difficultyId_symbolId: {
+                            modeId: modeId,
+                            difficultyId: difficultyId,
+                            symbolId: 2 // 'word' symbol
+                        }
+                    },
+                    update: { content: contentText.trim() },
+                    create: {
+                        modeId: modeId,
+                        difficultyId: difficultyId,
+                        symbolId: 2,
+                        content: contentText.trim()
+                    }
+                });
+                counter++;
+            }
+        }
+        res.status(201).json({ message: `Seeded ${counter} word contents` });
+    } catch (error) {
+        console.error('Seed content error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // POST /api/contents - Create or update content
 router.post('/', async (req, res) => {
     try {

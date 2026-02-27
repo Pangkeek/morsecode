@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     // Check if user is logged in on mount (check localStorage first, then sessionStorage)
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
-    
+
     if (token && userData) {
       setUser(JSON.parse(userData));
     }
@@ -40,28 +40,24 @@ export function AuthProvider({ children }) {
 
   const submitGameResult = async (gameData) => {
     try {
-      // Placeholder - backend endpoint not ready yet
-      console.log('PLACEHOLDER: Game data that would be sent to backend:', gameData);
-      
-      // TODO: Replace with actual API call when backend is ready
-      // const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      // const response = await fetch('https://morsecode-production.up.railway.app/api/results', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify(gameData)
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Failed to submit game result');
-      // }
-      
-      // return await response.json();
-      
-      // Placeholder response
-      return { success: true, message: 'Placeholder - data logged to console' };
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      // Using localhost for local development, users can change this to their railway URL if deployed
+      const API_URL = "http://localhost:5000/api";
+
+      const response = await fetch(`${API_URL}/play-sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(gameData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit game result');
+      }
+
+      return await response.json();
     } catch (error) {
       console.error('Error submitting game result:', error);
       throw error;

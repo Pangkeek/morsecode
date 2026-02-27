@@ -45,6 +45,8 @@ export default function Home() {
   const [mistakeCount, setMistakeCount] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [sessionCompletedTime, setSessionCompletedTime] = useState(null);
+  const [sessionDetails, setSessionDetails] = useState([]);
+  const [lastReactionTime, setLastReactionTime] = useState(null);
 
   // Session tracking functions
   const startSession = () => {
@@ -54,6 +56,8 @@ export default function Home() {
     setMistakeCount(0);
     setTotalAttempts(0);
     setSessionCompletedTime(null);
+    setSessionDetails([]);
+    setLastReactionTime(now);
   };
 
   const recordFirstInput = () => {
@@ -71,12 +75,32 @@ export default function Home() {
     setTotalAttempts(prev => prev + 1);
   };
 
+  const recordDetail = (questionText, userAnswerText, correctAnswerText, isCorrectFlag) => {
+    const now = Date.now();
+    const rt = lastReactionTime ? now - lastReactionTime : 0;
+
+    setSessionDetails(prev => {
+      const isDuplicateCorrect = isCorrectFlag && prev.length > 0 && prev[prev.length - 1].isCorrect && prev[prev.length - 1].question === questionText && prev[prev.length - 1].correctAnswer === correctAnswerText;
+      if (isDuplicateCorrect) return prev; // Avoid logging the same correct answer multiple times if React double-fires
+      return [...prev, {
+        question: questionText || '',
+        userAnswer: userAnswerText || '',
+        correctAnswer: correctAnswerText || '',
+        isCorrect: isCorrectFlag,
+        responseTime: Math.round(rt),
+        orderIndex: prev.length + 1
+      }];
+    });
+
+    setLastReactionTime(now);
+  };
+
   const calculateMetrics = () => {
     if (!firstInputTime || !sessionCompletedTime) return null;
-    
+
     const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
     const minutesElapsed = timeTaken / 60;
-    
+
     // Calculate characters/words completed
     let charactersCompleted = 0;
     if (type === "word") {
@@ -88,17 +112,32 @@ export default function Home() {
     } else {
       charactersCompleted = currentCharIndex;
     }
-    
+
     const wpm = minutesElapsed > 0 ? Math.round((charactersCompleted / 5) / minutesElapsed) : 0;
     const accuracy = totalAttempts > 0 ? Math.round(((totalAttempts - mistakeCount) / totalAttempts) * 100) : 100;
-    
+
+    // Map frontend states to backend IDs
+    const modeMapping = { "encode": 1, "decode": 2 };
+    const symbolMapping = { "a-z": 1, "word": 2 };
+    const difficultyMapping = { "10": 1, "15": 2, "50": 3, "100": 4 };
+
+    const modeId = modeMapping[mode] || 1;
+    const symbolId = symbolMapping[type] || 1;
+    const diffStr = length.toString();
+    const difficultyId = difficultyMapping[diffStr] || 1;
+
     return {
-      mode,
-      letterMode: type,
-      letterCount: parseInt(length),
+      modeId,
+      difficultyId,
+      symbolId,
       accuracy,
       wpm,
-      timeTaken: Math.round(timeTaken)
+      mistakeCount,
+      timeTaken: Math.round(timeTaken),
+      details: sessionDetails.map((detail) => ({
+        ...detail,
+        symbolId
+      }))
     };
   };
 
@@ -830,7 +869,7 @@ export default function Home() {
         setIsSpacebarPressed(true);
 
         setSpacebarStartTime(Date.now());
-        
+
         // Record first input time and start session tracking
         recordFirstInput();
 
@@ -897,6 +936,7 @@ export default function Home() {
             );
 
             if (expectedLetter && expectedLetter === newCharInput) {
+              recordDetail(currentMorse, newCharInput, expectedLetter, true);
               setIsSuccess(true);
 
               setSuccessDisplay(newCharInput);
@@ -926,6 +966,7 @@ export default function Home() {
                 setSuccessDisplay("");
               }, 500);
             } else {
+              recordDetail(currentMorse, newCharInput, expectedLetter || '', false);
               setIsError(true);
 
               setTimeout(() => {
@@ -943,6 +984,7 @@ export default function Home() {
           );
 
           if (expectedLetter && expectedLetter === newCharInput) {
+            recordDetail(currentMorse, newCharInput, expectedLetter, true);
             setIsSuccess(true);
 
             setSuccessDisplay(newCharInput);
@@ -952,7 +994,7 @@ export default function Home() {
             setMorseInput("");
 
             setCharInput("");
-            
+
             recordAttempt();
 
             setTimeout(() => {
@@ -966,6 +1008,7 @@ export default function Home() {
           } else {
             // Error - wrong character
 
+            recordDetail(currentMorse, newCharInput, expectedLetter || '', false);
             setIsError(true);
             recordMistake();
 
@@ -1010,6 +1053,7 @@ export default function Home() {
               const expectedMorse = morseCodeMap[encodeCurrentLetter];
 
               if (!expectedMorse.startsWith(newInput)) {
+                recordDetail(encodeCurrentLetter, newInput, expectedMorse, false);
                 setIsError(true);
                 recordMistake();
 
@@ -1018,10 +1062,11 @@ export default function Home() {
                   setMorseInput("");
                 }, 500);
               } else if (newInput === expectedMorse) {
+                recordDetail(encodeCurrentLetter, newInput, expectedMorse, true);
                 setIsSuccess(true);
 
                 setSuccessDisplay(newInput);
-                
+
                 recordAttempt();
 
                 const isLastLetterInWord =
@@ -1048,6 +1093,7 @@ export default function Home() {
                 }, 500);
               } else {
                 const timeout = setTimeout(() => {
+                  recordDetail(encodeCurrentLetter, newInput, expectedMorse, false);
                   setIsError(true);
                   recordMistake();
 
@@ -1066,6 +1112,7 @@ export default function Home() {
             const expectedMorse = morseCodeMap[currentLetter];
 
             if (!expectedMorse.startsWith(newInput)) {
+              recordDetail(currentLetter, newInput, expectedMorse, false);
               setIsError(true);
               recordMistake();
 
@@ -1074,10 +1121,11 @@ export default function Home() {
                 setMorseInput("");
               }, 500);
             } else if (newInput === expectedMorse) {
+              recordDetail(currentLetter, newInput, expectedMorse, true);
               setIsSuccess(true);
 
               setSuccessDisplay(newInput);
-              
+
               recordAttempt();
 
               const isLastChar = currentCharIndex === targetLetters.length - 1;
@@ -1096,6 +1144,7 @@ export default function Home() {
               }, 500);
             } else {
               const timeout = setTimeout(() => {
+                recordDetail(currentLetter, newInput, expectedMorse, false);
                 setIsError(true);
                 recordMistake();
 
@@ -1223,42 +1272,38 @@ export default function Home() {
           >
             <button
               onClick={() => setMode("decode")}
-              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300 ${
-                mode === "decode"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
-              }`}
+              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300 ${mode === "decode"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+                }`}
             >
               decode
             </button>
             <button
               onClick={() => setMode("encode")}
-              className={`px-4 py-4 transition-colors duration-300 ${
-                mode === "encode"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
-              }`}
+              className={`px-4 py-4 transition-colors duration-300 ${mode === "encode"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+                }`}
             >
               encode
             </button>
             <p className="text-[#9CA3AF]">|</p>
             <button
               onClick={() => setType("a-z")}
-              className={`px-4 py-4 transition-colors duration-300 ${
-                type === "a-z"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
-              }`}
+              className={`px-4 py-4 transition-colors duration-300 ${type === "a-z"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+                }`}
             >
               a-z
             </button>
             <button
               onClick={() => setType("word")}
-              className={`px-4 py-4 transition-colors duration-300 ${
-                type === "word"
-                  ? "text-[#EF4444]"
-                  : "text-[#9CA3AF] hover:text-white"
-              }`}
+              className={`px-4 py-4 transition-colors duration-300 ${type === "word"
+                ? "text-[#EF4444]"
+                : "text-[#9CA3AF] hover:text-white"
+                }`}
             >
               word
             </button>
@@ -1268,11 +1313,10 @@ export default function Home() {
                 <button
                   key={len}
                   onClick={() => setLength(len)}
-                  className={`px-4 py-4 transition-colors duration-300 ${
-                    length === len
-                      ? "text-[#EF4444]"
-                      : "text-[#9CA3AF] hover:text-white"
-                  } ${len === "100" ? "pr-10" : ""}`}
+                  className={`px-4 py-4 transition-colors duration-300 ${length === len
+                    ? "text-[#EF4444]"
+                    : "text-[#9CA3AF] hover:text-white"
+                    } ${len === "100" ? "pr-10" : ""}`}
                 >
                   {len}
                 </button>
@@ -1400,9 +1444,8 @@ export default function Home() {
         </div>
       ) : mode === "decode" ? (
         <div
-          className={`${
-            isFading ? "animate-fadeOut" : ""
-          } flex flex-col items-center px-4`}
+          className={`${isFading ? "animate-fadeOut" : ""
+            } flex flex-col items-center px-4`}
         >
           <div
             className="flex flex-wrap justify-center mt-20 sm:mt-40 max-w-7xl relative px-4"
@@ -1414,11 +1457,11 @@ export default function Home() {
                 type === "word"
                   ? undefined
                   : {
-                      transform: `translateY(-${decodeCurrentLine * 80}px)`,
+                    transform: `translateY(-${decodeCurrentLine * 80}px)`,
 
-                      transition:
-                        "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
-                    }
+                    transition:
+                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+                  }
               }
             >
               {(type === "word" ? decodeCurrentWordMorse : targetLetters).map(
@@ -1440,15 +1483,13 @@ export default function Home() {
                       key={
                         type === "word" ? `w${decodeWordIndex}-${index}` : index
                       }
-                      className={`${
-                        spmono.className
-                      } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${
-                        isPast
+                      className={`${spmono.className
+                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
                           ? "text-white"
                           : isCurrent && isError
-                          ? "text-red-500 animate-shake"
-                          : "text-[#5a5e61]"
-                      }`}
+                            ? "text-red-500 animate-shake"
+                            : "text-[#5a5e61]"
+                        }`}
                       style={{ margin: "0 1rem" }}
                     >
                       {letter}
@@ -1505,21 +1546,19 @@ export default function Home() {
           />
 
           <p
-            className={`${
-              spmono.className
-            } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${
-              isError
+            className={`${spmono.className
+              } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                ? "text-green-500"
-                : "text-white"
-            }`}
+                  ? "text-green-500"
+                  : "text-white"
+              }`}
           >
             {isSuccess
               ? successDisplay
               : charInput || (
-                  <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">type</span>
-                )}
+                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">type</span>
+              )}
           </p>
 
           <div className="mt-30 px-4">
@@ -1639,24 +1678,22 @@ export default function Home() {
         <>
           <div
             ref={containerRef}
-            className={`flex flex-wrap mt-20 sm:mt-40 max-w-7xl relative px-4 ${
-              type === "word" ? "justify-center" : ""
-            }`}
+            className={`flex flex-wrap mt-20 sm:mt-40 max-w-7xl relative px-4 ${type === "word" ? "justify-center" : ""
+              }`}
             style={{ height: "60px", overflow: "hidden" }}
           >
             <div
-              className={`flex flex-wrap ${
-                type === "word" ? "justify-center" : ""
-              }`}
+              className={`flex flex-wrap ${type === "word" ? "justify-center" : ""
+                }`}
               style={
                 type === "word"
                   ? undefined
                   : {
-                      transform: `translateY(-${currentLine * 80}px)`,
+                    transform: `translateY(-${currentLine * 80}px)`,
 
-                      transition:
-                        "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
-                    }
+                    transition:
+                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+                  }
               }
             >
               {(type === "word"
@@ -1678,15 +1715,13 @@ export default function Home() {
                     key={
                       type === "word" ? `w${encodeWordIndex}-${index}` : index
                     }
-                    className={`${
-                      spmono.className
-                    } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${
-                      isPast
+                    className={`${spmono.className
+                      } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
                         ? "text-white"
                         : isCurrent && isError
-                        ? "text-red-500 animate-shake"
-                        : "text-[#5a5e61]"
-                    }`}
+                          ? "text-red-500 animate-shake"
+                          : "text-[#5a5e61]"
+                      }`}
                     style={{ margin: "0 1rem" }}
                   >
                     {letter}
@@ -1746,23 +1781,21 @@ export default function Home() {
           />
 
           <p
-            className={`${
-              spmono.className
-            } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${
-              isError
+            className={`${spmono.className
+              } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${isError
                 ? "text-red-500 animate-shake"
                 : isSuccess
-                ? "text-green-500"
-                : "text-white"
-            }`}
+                  ? "text-green-500"
+                  : "text-white"
+              }`}
           >
             {isSuccess
               ? successDisplay
               : morseInput || (
-                  <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
-                    press spacebar
-                  </span>
-                )}
+                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
+                  press spacebar
+                </span>
+              )}
           </p>
 
           <div className="mt-30 px-4">
