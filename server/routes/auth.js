@@ -66,7 +66,7 @@ router.post('/register', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -81,6 +81,7 @@ router.post('/register', async (req, res) => {
                 rank: user.rank,
                 avgWpm: user.avgWpm,
                 avgAccuracy: user.avgAccuracy,
+                role: user.role,
                 settings: user.settings
             },
             token
@@ -123,7 +124,7 @@ router.post('/login', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -138,6 +139,7 @@ router.post('/login', async (req, res) => {
                 rank: user.rank,
                 avgWpm: user.avgWpm,
                 avgAccuracy: user.avgAccuracy,
+                role: user.role,
                 settings: user.settings
             },
             token
@@ -168,6 +170,7 @@ router.get('/me', authenticateToken, async (req, res) => {
             rank: user.rank,
             avgWpm: user.avgWpm,
             avgAccuracy: user.avgAccuracy,
+            role: user.role,
             settings: user.settings,
             createdAt: user.createdAt
         });

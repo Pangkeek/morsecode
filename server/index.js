@@ -62,6 +62,13 @@ app.use('/api/play-sessions', playSessionsRoutes);
 const userModeStatusRoutes = require('./routes/user-mode-status.js');
 app.use('/api/user-mode-status', userModeStatusRoutes);
 
+// Leaderboard routes
+const leaderboardRoutes = require('./routes/leaderboard.js');
+app.use('/api/leaderboard', leaderboardRoutes);
+
+// Admin routes
+const adminRoutes = require('./routes/admin.js');
+app.use('/api/admin', adminRoutes);
 
 // Start server synchronously
 const PORT = process.env.PORT || 3001;

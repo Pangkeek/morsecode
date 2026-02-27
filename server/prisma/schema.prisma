@@ -21,6 +21,7 @@ model User {
   rank        Int      @default(0)
   avgWpm      Float    @default(0)
   avgAccuracy Float    @default(0)
+  role        String   @default("USER")
 
   settings     Settings?
   playSessions PlaySession[]
