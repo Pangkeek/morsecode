@@ -52,7 +52,7 @@ export default function Profile() {
         if (!token) return;
 
         const API_URL = "http://localhost:5000/api";
-        const res = await fetch(`${API_URL}/user-mode-status/summary/overview`, {
+        const res = await fetch(`${API_URL}/user-mode-status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -346,11 +346,11 @@ export default function Profile() {
                        border-b border-[#2A3247]`}
                 >
                   <div className="pl-0 sm:pl-10 truncate capitalize">
-                    {score.mode} {score.symbol} {score.difficulty}
+                    {score.mode?.name} {score.symbol?.name} {score.difficulty?.amtWord || score.difficulty?.name}
                   </div>
                   <div>{score.highWpm > 0 ? score.highWpm : 'N/A'}</div>
                   <div>{score.highAccuracy > 0 ? `${score.highAccuracy}%` : 'N/A'}</div>
-                  <div>{score.lastPlayed ? new Date(score.lastPlayed).toLocaleDateString() : 'N/A'}</div>
+                  <div>{score.updatedAt ? new Date(score.updatedAt).toLocaleDateString() : 'N/A'}</div>
                 </div>
               ))
             )}
