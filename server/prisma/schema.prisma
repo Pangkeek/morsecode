@@ -9,46 +9,137 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  username  String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+// ==================== User & Settings ====================
 
-  settings  Settings?
-  results   Result[]
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  totalPlay   Int      @default(0)
+  rank        Int      @default(0)
+  avgWpm      Float    @default(0)
+  avgAccuracy Float    @default(0)
+
+  settings     Settings?
+  playSessions PlaySession[]
+  modeStatuses UserModeStatus[]
 }
 
 model Settings {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @unique
+  theme       String  @default("dark")
+  soundVolume Int     @default(50)
+  showHints   Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== Lookup Tables ====================
+
+model Mode {
+  id   Int    @id @default(autoincrement())
+  name String @unique // "encode", "decode"
+
+  playSessions PlaySession[]
+  modeStatuses UserModeStatus[]
+  contents     Content[]
+}
+
+model Symbol {
+  id   Int    @id @default(autoincrement())
+  name String @unique // "a-z", "word"
+
+  playSessions   PlaySession[]
+  modeStatuses   UserModeStatus[]
+  contents       Content[]
+  sessionDetails SessionDetail[]
+}
+
+model Difficulty {
+  id      Int    @id @default(autoincrement())
+  name    String @unique // "easy", "medium", "hard"
+  amtWord Int    @default(10)
+
+  playSessions PlaySession[]
+  modeStatuses UserModeStatus[]
+  contents     Content[]
+}
+
+// ==================== Game Data ====================
+
+model PlaySession {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  modeId       Int
+  difficultyId Int
+  symbolId     Int
+  wpm          Float
+  accuracy     Float
+  mistakeCount Int      @default(0)
+  timeTaken    Int      @default(0) // in seconds
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode       Mode       @relation(fields: [modeId], references: [id])
+  difficulty Difficulty @relation(fields: [difficultyId], references: [id])
+  symbol     Symbol     @relation(fields: [symbolId], references: [id])
+
+  details SessionDetail[]
+}
+
+model SessionDetail {
   id            Int     @id @default(autoincrement())
-  userId        Int     @unique
-  theme         String  @default("dark")
-  soundVolume   Int     @default(50)
-  showHints     Boolean @default(true)
-  preferredMode String  @default("encode")
+  sessionId     Int
+  symbolId      Int
+  question      String // The question shown (e.g. ".-" or "A")
+  userAnswer    String // What the user answered
+  correctAnswer String // The correct answer
+  isCorrect     Boolean
+  responseTime  Int     @default(0) // in milliseconds
+  orderIndex    Int     @default(0) // question order (1, 2, 3...)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session PlaySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  symbol  Symbol      @relation(fields: [symbolId], references: [id])
 }
 
-model Result {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  mode       String   // "encode" or "decode"
-  letterMode String   // "a-z" or "word"
-  letterCount Int
-  accuracy   Float
-  wpm        Float    // words per minute
-  timeTaken  Int      // in seconds
-  createdAt  DateTime @default(now())
+// ==================== Statistics ====================
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model UserModeStatus {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  modeId       Int
+  difficultyId Int
+  symbolId     Int
+  highWpm      Float    @default(0)
+  highAccuracy Float    @default(0)
+  totalScore   Float    @default(0)
+  mistakeCount Int      @default(0)
+  time         Int      @default(0) // total time in seconds
+  realTime     Int      @default(0) // real elapsed time in seconds
+  updatedAt    DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode       Mode       @relation(fields: [modeId], references: [id])
+  difficulty Difficulty @relation(fields: [difficultyId], references: [id])
+  symbol     Symbol     @relation(fields: [symbolId], references: [id])
+
+  @@unique([userId, modeId, difficultyId, symbolId])
 }
 
-model Word {
-  id         Int      @id @default(autoincrement())
-  word       String   @unique
-  difficulty String   @default("easy") // "easy", "medium", "hard"
-  createdAt  DateTime @default(now())
+// ==================== Content ====================
+
+model Content {
+  id           Int    @id @default(autoincrement())
+  modeId       Int
+  difficultyId Int
+  symbolId     Int
+  content      String
+
+  mode       Mode       @relation(fields: [modeId], references: [id])
+  difficulty Difficulty @relation(fields: [difficultyId], references: [id])
+  symbol     Symbol     @relation(fields: [symbolId], references: [id])
+
+  @@unique([modeId, difficultyId, symbolId])
 }

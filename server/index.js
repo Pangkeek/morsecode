@@ -36,17 +36,31 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/auth.js');
 app.use('/api/auth', authRoutes);
 
-// Results routes  
-const resultsRoutes = require('./routes/results.js');
-app.use('/api/results', resultsRoutes);
-
 // Settings routes
 const settingsRoutes = require('./routes/settings.js');
 app.use('/api/settings', settingsRoutes);
 
-// Random routes (for random letters and words)
-const randomRoutes = require('./routes/random.js');
-app.use('/api/random', randomRoutes);
+// Lookup table routes
+const modesRoutes = require('./routes/modes.js');
+app.use('/api/modes', modesRoutes);
+
+const symbolsRoutes = require('./routes/symbols.js');
+app.use('/api/symbols', symbolsRoutes);
+
+const difficultiesRoutes = require('./routes/difficulties.js');
+app.use('/api/difficulties', difficultiesRoutes);
+
+// Content routes
+const contentsRoutes = require('./routes/contents.js');
+app.use('/api/contents', contentsRoutes);
+
+// Game data routes
+const playSessionsRoutes = require('./routes/play-sessions.js');
+app.use('/api/play-sessions', playSessionsRoutes);
+
+// Statistics routes
+const userModeStatusRoutes = require('./routes/user-mode-status.js');
+app.use('/api/user-mode-status', userModeStatusRoutes);
 
 
 // Start server synchronously

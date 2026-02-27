@@ -31,13 +31,12 @@ router.get('/', async (req, res) => {
 // PUT /api/settings - Update settings for current user
 router.put('/', async (req, res) => {
     try {
-        const { theme, soundVolume, showHints, preferredMode } = req.body;
+        const { theme, soundVolume, showHints } = req.body;
 
         const updateData = {};
         if (theme !== undefined) updateData.theme = theme;
         if (soundVolume !== undefined) updateData.soundVolume = soundVolume;
         if (showHints !== undefined) updateData.showHints = showHints;
-        if (preferredMode !== undefined) updateData.preferredMode = preferredMode;
 
         const settings = await req.prisma.settings.upsert({
             where: { userId: req.user.id },

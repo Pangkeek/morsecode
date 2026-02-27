@@ -25,22 +25,20 @@ const authenticateToken = (req, res, next) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
-        const { email, username, password } = req.body;
+        const { username, password } = req.body;
 
         // Validate input
-        if (!email || !username || !password) {
-            return res.status(400).json({ error: 'Email, username, and password are required' });
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
         }
 
         // Check if user already exists
-        const existingUser = await req.prisma.user.findFirst({
-            where: {
-                OR: [{ email }, { username }]
-            }
+        const existingUser = await req.prisma.user.findUnique({
+            where: { username }
         });
 
         if (existingUser) {
-            return res.status(400).json({ error: 'Email or username already exists' });
+            return res.status(400).json({ error: 'Username already exists' });
         }
 
         // Hash password
@@ -49,7 +47,6 @@ router.post('/register', async (req, res) => {
         // Create user with default settings
         const user = await req.prisma.user.create({
             data: {
-                email,
                 username,
                 password: hashedPassword,
                 settings: {
@@ -63,7 +60,7 @@ router.post('/register', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username },
+            { id: user.id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -72,8 +69,11 @@ router.post('/register', async (req, res) => {
             message: 'User registered successfully',
             user: {
                 id: user.id,
-                email: user.email,
                 username: user.username,
+                totalPlay: user.totalPlay,
+                rank: user.rank,
+                avgWpm: user.avgWpm,
+                avgAccuracy: user.avgAccuracy,
                 settings: user.settings
             },
             token
@@ -87,31 +87,31 @@ router.post('/register', async (req, res) => {
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
         }
 
-        // Find user by email
+        // Find user by username
         const user = await req.prisma.user.findUnique({
-            where: { email },
+            where: { username },
             include: { settings: true }
         });
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid username or password' });
         }
 
         // Check password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid username or password' });
         }
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username },
+            { id: user.id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -120,8 +120,11 @@ router.post('/login', async (req, res) => {
             message: 'Login successful',
             user: {
                 id: user.id,
-                email: user.email,
                 username: user.username,
+                totalPlay: user.totalPlay,
+                rank: user.rank,
+                avgWpm: user.avgWpm,
+                avgAccuracy: user.avgAccuracy,
                 settings: user.settings
             },
             token
@@ -146,8 +149,11 @@ router.get('/me', authenticateToken, async (req, res) => {
 
         res.json({
             id: user.id,
-            email: user.email,
             username: user.username,
+            totalPlay: user.totalPlay,
+            rank: user.rank,
+            avgWpm: user.avgWpm,
+            avgAccuracy: user.avgAccuracy,
             settings: user.settings,
             createdAt: user.createdAt
         });
