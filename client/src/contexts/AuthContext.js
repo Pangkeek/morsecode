@@ -54,6 +54,11 @@ export function AuthProvider({ children }) {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          console.warn('Session expired or invalid token - logging out');
+          logout();
+          throw new Error('Your session has expired. Please login again.');
+        }
         const errorData = await response.json().catch(() => ({}));
         console.error('Submission failed status:', response.status);
         console.error('Submission failed body:', errorData);
@@ -88,6 +93,9 @@ export function AuthProvider({ children }) {
         // Also update storage
         const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
         storage.setItem('user', JSON.stringify(userData));
+      } else if (response.status === 401 || response.status === 403) {
+        // Token is invalid for the current server
+        logout();
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
