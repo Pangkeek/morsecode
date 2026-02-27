@@ -144,22 +144,32 @@ export default function Profile() {
               {user?.username ? user.username.slice(0, 2).toUpperCase() : '?'}
             </p>
           </div>
-          <div className="text-base sm:text-[20px] mt-4 sm:mt-0 sm:ml-10 min-w-0 w-full">
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40">
-              <div>Username</div>
-              <div>UID</div>
-              <div>Role</div>
-              <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
-              <div className="text-[#9CA3AF] truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
-              <div className="text-[#9CA3AF]">{user?.role || 'User'}</div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40 mt-6 sm:mt-10">
-              <div>Acc Created</div>
-              <div>E-mail</div>
-              <div>Password</div>
-              <div className="text-[#9CA3AF]">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</div>
-              <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
-              <div className="text-[#9CA3AF]">••••••••</div>
+          <div className="bg-[#1E2332] p-6 sm:p-10 rounded-xl mt-6 sm:mt-10 overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">Username</div>
+                <div className="text-[#9CA3AF] text-lg truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">UID</div>
+                <div className="text-[#9CA3AF] text-lg truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">Role</div>
+                <div className="text-[#9CA3AF] text-lg">{user?.role || 'User'}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">Account Created</div>
+                <div className="text-[#9CA3AF] text-lg">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">E-mail</div>
+                <div className="text-[#9CA3AF] text-lg truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="text-white font-bold opacity-50 uppercase text-xs tracking-wider">Password</div>
+                <div className="text-[#9CA3AF] text-lg">••••••••</div>
+              </div>
             </div>
           </div>
         </div>

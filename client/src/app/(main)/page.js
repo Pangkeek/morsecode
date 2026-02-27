@@ -95,10 +95,11 @@ export default function Home() {
     setLastReactionTime(now);
   };
 
-  const calculateMetrics = () => {
-    if (!firstInputTime || !sessionCompletedTime) return null;
+  const calculateMetrics = (compTime) => {
+    const finalCompTime = compTime || sessionCompletedTime;
+    if (!firstInputTime || !finalCompTime) return null;
 
-    const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
+    const timeTaken = (finalCompTime - firstInputTime) / 1000; // in seconds
     const minutesElapsed = timeTaken / 60;
 
     // Calculate characters/words completed
@@ -141,8 +142,8 @@ export default function Home() {
     };
   };
 
-  const submitSessionData = async () => {
-    const metrics = calculateMetrics();
+  const submitSessionData = async (compTime) => {
+    const metrics = calculateMetrics(compTime);
     if (metrics) {
       try {
         await submitGameResult(metrics);
@@ -1224,8 +1225,9 @@ export default function Home() {
   // Handle session completion and API submission
   React.useEffect(() => {
     if (isCompleted && !sessionCompletedTime) {
-      setSessionCompletedTime(Date.now());
-      submitSessionData();
+      const now = Date.now();
+      setSessionCompletedTime(now);
+      submitSessionData(now);
     }
   }, [isCompleted, sessionCompletedTime]);
 
