@@ -939,6 +939,7 @@ export default function Home() {
 
             if (expectedLetter && expectedLetter === newCharInput) {
               recordDetail(currentMorse, newCharInput, expectedLetter, true);
+              recordAttempt();
               setIsSuccess(true);
 
               setSuccessDisplay(newCharInput);
@@ -969,6 +970,7 @@ export default function Home() {
               }, 500);
             } else {
               recordDetail(currentMorse, newCharInput, expectedLetter || '', false);
+              recordMistake();
               setIsError(true);
 
               setTimeout(() => {
