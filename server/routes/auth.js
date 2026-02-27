@@ -98,7 +98,7 @@ router.post('/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+            return res.status(400).json({ error: 'Email and password are required' });
         }
 
         // Find user by username or email (reusing the 'username' variable from req.body)
