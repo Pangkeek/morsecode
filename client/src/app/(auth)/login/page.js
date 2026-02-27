@@ -20,8 +20,9 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/login",
+      // Send username and password as expected by server code
+      let res = await fetch(
+        "https://morsecode-production.up.railway.app/api/auth/login",
         {
           method: "POST",
           headers: {
@@ -31,17 +32,24 @@ function LoginPage() {
         }
       );
 
-      const data = await res.json();
+      let data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || data.message || "Login failed");
+        console.log('Login error response:', data);
+        console.log('Status code:', res.status);
+        if (res.status === 500) {
+          alert("Server error: " + (data.error || "Unknown server error") + ". Check server logs for details.");
+        } else {
+          alert(data.error || data.message || "Login failed");
+        }
         return;
       }
 
       // Use login function from AuthContext
-      login(data.token, data.user);
+      login(data.token, data.user, rememberMe);
     } catch (err) {
-      alert("Server error");
+      console.log('Login catch error:', err);
+      alert("Network error: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -68,11 +76,11 @@ function LoginPage() {
             login
           </p>
           <div className="flex flex-col w-full sm:w-auto">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>username or email</label>
+            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email or username</label>
             <input
               type="text"
               className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
-              placeholder="Enter username or email"
+              placeholder="Enter email or username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />

@@ -21,7 +21,7 @@ function RegisterPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/register",
+        "https://morsecode-production.up.railway.app/api/auth/register",
         {
           method: "POST",
           headers: {

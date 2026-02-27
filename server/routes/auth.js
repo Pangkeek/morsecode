@@ -81,6 +81,7 @@ router.post('/register', async (req, res) => {
                 rank: user.rank,
                 avgWpm: user.avgWpm,
                 avgAccuracy: user.avgAccuracy,
+                createdAt: user.createdAt,
                 settings: user.settings
             },
             token
@@ -138,6 +139,7 @@ router.post('/login', async (req, res) => {
                 rank: user.rank,
                 avgWpm: user.avgWpm,
                 avgAccuracy: user.avgAccuracy,
+                createdAt: user.createdAt,
                 settings: user.settings
             },
             token

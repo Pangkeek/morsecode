@@ -96,7 +96,20 @@ export default function Home() {
   };
 
   const calculateMetrics = () => {
-    if (!firstInputTime || !sessionCompletedTime) return null;
+    console.log('🔍 calculateMetrics check:', {
+      firstInputTime,
+      sessionCompletedTime,
+      currentCharIndex,
+      totalAttempts,
+      mistakeCount,
+      mode,
+      type
+    });
+    
+    if (!firstInputTime || !sessionCompletedTime) {
+      console.log('❌ calculateMetrics returning null - missing timing data');
+      return null;
+    }
 
     const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
     const minutesElapsed = timeTaken / 60;
@@ -142,14 +155,18 @@ export default function Home() {
   };
 
   const submitSessionData = async () => {
+    console.log('🎮 Submitting session data...');
     const metrics = calculateMetrics();
     if (metrics) {
+      console.log('📊 Metrics calculated:', metrics);
       try {
         await submitGameResult(metrics);
-        console.log('Game result submitted successfully:', metrics);
+        console.log('✅ Game result submitted successfully:', metrics);
       } catch (error) {
-        console.error('Failed to submit game result:', error);
+        console.error('❌ Failed to submit game result:', error);
       }
+    } else {
+      console.log('❌ No metrics to submit');
     }
   };
 
@@ -923,6 +940,9 @@ export default function Home() {
         const newCharInput = e.key.toUpperCase();
 
         setCharInput(newCharInput);
+        
+        // Record first input time and start session tracking
+        recordFirstInput();
 
         if (type === "word") {
           if (
@@ -1222,8 +1242,20 @@ export default function Home() {
 
   // Handle session completion and API submission
   React.useEffect(() => {
+    console.log('🎯 Game completion check:', { isCompleted, sessionCompletedTime });
     if (isCompleted && !sessionCompletedTime) {
-      setSessionCompletedTime(Date.now());
+      console.log('🏁 Game completed, setting session time and submitting...');
+      const now = Date.now();
+      setSessionCompletedTime(now);
+      console.log('⏰ Session completed time set to:', now);
+      // Submit will be triggered in the next useEffect cycle
+    }
+  }, [isCompleted, sessionCompletedTime]);
+
+  // Separate useEffect to handle submission after sessionCompletedTime is set
+  React.useEffect(() => {
+    if (isCompleted && sessionCompletedTime) {
+      console.log('📤 Ready to submit session data...');
       submitSessionData();
     }
   }, [isCompleted, sessionCompletedTime]);

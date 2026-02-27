@@ -174,7 +174,13 @@ router.post('/', async (req, res) => {
         res.status(201).json(result);
     } catch (error) {
         console.error('Save play session error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            requestBody: { modeId, difficultyId, symbolId, wpm, accuracy, mistakeCount, timeTaken, details: details?.length || 0 },
+            userId: req.user?.id
+        });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
 

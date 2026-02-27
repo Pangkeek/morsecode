@@ -4,6 +4,16 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('@prisma/client');
+const { execSync } = require('child_process');
+
+// Run database migrations before starting server
+try {
+  console.log('Running database migrations...');
+  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+  console.log('Migrations completed successfully');
+} catch (error) {
+  console.log('Migration failed or already applied:', error.message);
+}
 
 // Create Express app first
 const app = express();
