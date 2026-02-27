@@ -118,6 +118,9 @@ export function AuthProvider({ children }) {
         // Also update storage
         const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
         storage.setItem('user', JSON.stringify(userData));
+      } else if (response.status === 401 || response.status === 403) {
+        // Token is invalid for the current server
+        logout();
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
