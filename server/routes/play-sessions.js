@@ -40,7 +40,7 @@ router.get('/weakness/global', async (req, res) => {
         // Query SessionDetails where user made a mistake, across all of their sessions
         const mistakes = await req.prisma.sessionDetail.findMany({
             where: {
-                playSession: {
+                session: {
                     userId: req.user.id
                 },
                 isCorrect: false
