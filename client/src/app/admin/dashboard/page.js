@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Space_Mono } from "next/font/google";
-import Navbar from '../../../components/Navbar';
+import Navbar from '@/components/Navbar';
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
