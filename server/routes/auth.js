@@ -22,6 +22,35 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// GET /api/auth/me - Get current user data
+router.get('/me', authenticateToken, async (req, res) => {
+    try {
+        const user = await req.prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: { settings: true }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            totalPlay: user.totalPlay,
+            rank: user.rank,
+            avgWpm: user.avgWpm,
+            avgAccuracy: user.avgAccuracy,
+            role: user.role,
+            createdAt: user.createdAt
+        });
+    } catch (error) {
+        console.error('Get user info error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {

@@ -57,10 +57,37 @@ export function AuthProvider({ children }) {
         throw new Error('Failed to submit game result');
       }
 
-      return await response.json();
+      const result = await response.json();
+
+      // Refresh user info to get updated stats (totalPlay, avgWpm, etc.)
+      await fetchUserInfo();
+
+      return result;
     } catch (error) {
       console.error('Error submitting game result:', error);
       throw error;
+    }
+  };
+
+  const fetchUserInfo = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const API_URL = "https://morsecode-production.up.railway.app/api";
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        // Also update storage
+        const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
+        storage.setItem('user', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
     }
   };
 
@@ -69,7 +96,8 @@ export function AuthProvider({ children }) {
     login,
     logout,
     loading,
-    submitGameResult
+    submitGameResult,
+    refreshUser: fetchUserInfo
   };
 
   return (
