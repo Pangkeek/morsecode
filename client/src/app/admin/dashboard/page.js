@@ -55,11 +55,12 @@ export default function AdminDashboard() {
                 const data = await contentsRes.json();
                 setContents(data);
             } else {
-                setError("Failed to load admin data. Access denied.");
+                const errData = await contentsRes.json().catch(() => ({}));
+                setError(`Failed to load content: ${contentsRes.status} ${errData.error || 'Server Error'}. Please try to Logout and Login again.`);
             }
         } catch (err) {
             console.error("Admin fetch error:", err);
-            setError(err.message);
+            setError(`Network or System Error: ${err.message}`);
         } finally {
             setLoadingMetrics(false);
             setLoadingContents(false);
