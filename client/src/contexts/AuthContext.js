@@ -54,7 +54,10 @@ export function AuthProvider({ children }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit game result');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Submission failed status:', response.status);
+        console.error('Submission failed body:', errorData);
+        throw new Error(errorData.error || 'Failed to submit game result');
       }
 
       const result = await response.json();
