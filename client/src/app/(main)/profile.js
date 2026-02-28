@@ -14,10 +14,6 @@ export default function Profile() {
   const { user, logout, refreshUser } = useAuth();
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  const [bestScores, setBestScores] = useState([]);
-  const [loadingBestScores, setLoadingBestScores] = useState(true);
-  const [globalWeaknesses, setGlobalWeaknesses] = useState([]);
-  const [loadingGlobalWeaknesses, setLoadingGlobalWeaknesses] = useState(true);
   const [selectedSession, setSelectedSession] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -53,77 +49,8 @@ export default function Profile() {
       }
     };
 
-    const fetchBestScores = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token) return;
-
-        const API_URL = "https://morsecode-production.up.railway.app/api";
-        const res = await fetch(`${API_URL}/user-mode-status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setBestScores(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch best scores:", err);
-      } finally {
-        setLoadingBestScores(false);
-      }
-    };
-
-    const fetchGlobalWeaknesses = async () => {
-      try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token) return;
-
-        const API_URL = "https://morsecode-production.up.railway.app/api";
-        const res = await fetch(`${API_URL}/play-sessions/weakness/global`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setGlobalWeaknesses(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch global weaknesses:", err);
-      } finally {
-        setLoadingGlobalWeaknesses(false);
-      }
-    };
-
     fetchHistory();
-    fetchBestScores();
-    fetchGlobalWeaknesses();
   }, [user]);
-
-  const ALL_MODE_COMBOS = [
-    { mode: 'encode', symbol: 'a-z', amtWord: 10 },
-    { mode: 'encode', symbol: 'a-z', amtWord: 15 },
-    { mode: 'encode', symbol: 'a-z', amtWord: 50 },
-    { mode: 'encode', symbol: 'a-z', amtWord: 100 },
-    { mode: 'encode', symbol: 'word', amtWord: 10 },
-    { mode: 'encode', symbol: 'word', amtWord: 15 },
-    { mode: 'encode', symbol: 'word', amtWord: 50 },
-    { mode: 'encode', symbol: 'word', amtWord: 100 },
-    { mode: 'decode', symbol: 'a-z', amtWord: 10 },
-    { mode: 'decode', symbol: 'a-z', amtWord: 15 },
-    { mode: 'decode', symbol: 'a-z', amtWord: 50 },
-    { mode: 'decode', symbol: 'a-z', amtWord: 100 },
-    { mode: 'decode', symbol: 'word', amtWord: 10 },
-    { mode: 'decode', symbol: 'word', amtWord: 15 },
-    { mode: 'decode', symbol: 'word', amtWord: 50 },
-    { mode: 'decode', symbol: 'word', amtWord: 100 },
-  ];
-
-  const findBestScore = (mode, symbol, amtWord) => {
-    return bestScores.find(
-      (s) => s.mode?.name === mode && s.symbol?.name === symbol && s.difficulty?.amtWord === amtWord
-    );
-  };
 
   const handleLogout = () => {
     logout();
@@ -161,8 +88,8 @@ export default function Profile() {
 
     const worstChar = Object.keys(charCount).reduce((a, b) => charCount[a] > charCount[b] ? a : b);
     return `ตาวิเศษเห็นนะว่ารอบนี้คุณพิมพ์ตัว "${worstChar}" ผิดบ่อยสุด! (${charCount[worstChar]} ครั้ง) 😅`;
-  }
-  
+  };
+
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-hidden px-4 box-border">
       <div className="w-full max-w-[975px] mx-auto min-w-0">
@@ -178,6 +105,7 @@ export default function Profile() {
           </div>
           <div className="text-base sm:text-[20px] mt-4 sm:mt-0 sm:ml-10 min-w-0 w-full">
             <div className="space-y-4 sm:space-y-6">
+              {/* Mobile View */}
               <div className="grid grid-cols-2 gap-2 sm:hidden md:hidden">
                 <div className="text-white font-semibold">Username</div>
                 <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
@@ -186,6 +114,8 @@ export default function Profile() {
                 <div className="text-white font-semibold">Rank</div>
                 <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
+              
+              {/* Tablet View */}
               <div className="hidden sm:grid md:hidden grid-cols-2 gap-3">
                 <div className="text-white font-semibold">Username</div>
                 <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
@@ -194,6 +124,8 @@ export default function Profile() {
                 <div className="text-white font-semibold">Rank</div>
                 <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
+              
+              {/* Desktop View */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40">
                 <div>Username</div>
                 <div>UID</div>
@@ -202,6 +134,8 @@ export default function Profile() {
                 <div className="text-[#9CA3AF] truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
                 <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
+
+              {/* Account Created - Mobile */}
               <div className="grid grid-cols-2 gap-2 sm:hidden md:hidden">
                 <div className="text-white font-semibold">Acc Created</div>
                 <div className="text-[#9CA3AF]">
@@ -221,7 +155,7 @@ export default function Profile() {
                 <div className="text-white font-semibold">E-mail</div>
                 <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
                 <div className="text-white font-semibold">Password</div>
-                <div className="text-[#9CA3AF]">••••••••</div>
+                <div className="text-[#9CA3AF]">••••••</div>
                 <div className="text-white font-semibold">Avg WPM</div>
                 <div className="text-[#9CA3AF]">{user?.avgWpm?.toFixed(1) || '0.0'}</div>
                 <div className="text-white font-semibold">Avg ACC</div>
@@ -229,6 +163,8 @@ export default function Profile() {
                 <div className="text-white font-semibold">Total Play</div>
                 <div className="text-[#9CA3AF]">{user?.totalPlay || '0'}</div>
               </div>
+              
+              {/* Account Created - Tablet */}
               <div className="hidden sm:grid md:hidden grid-cols-2 gap-3">
                 <div className="text-white font-semibold">Acc Created</div>
                 <div className="text-[#9CA3AF]">
@@ -248,7 +184,7 @@ export default function Profile() {
                 <div className="text-white font-semibold">E-mail</div>
                 <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
                 <div className="text-white font-semibold">Password</div>
-                <div className="text-[#9CA3AF]">••••••••</div>
+                <div className="text-[#9CA3AF]">••••••</div>
                 <div className="text-white font-semibold">Avg WPM</div>
                 <div className="text-[#9CA3AF]">{user?.avgWpm?.toFixed(1) || '0.0'}</div>
                 <div className="text-white font-semibold">Avg ACC</div>
@@ -256,6 +192,8 @@ export default function Profile() {
                 <div className="text-white font-semibold">Total Play</div>
                 <div className="text-[#9CA3AF]">{user?.totalPlay || '0'}</div>
               </div>
+              
+              {/* Account Created - Desktop */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40 mt-6 sm:mt-10">
                 <div>Acc Created</div>
                 <div>E-mail</div>
@@ -275,8 +213,10 @@ export default function Profile() {
                   }
                 </div>
                 <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
-                <div className="text-[#9CA3AF]">••••••••</div>
+                <div className="text-[#9CA3AF]">••••••</div>
               </div>
+              
+              {/* Stats - Desktop */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40 mt-6">
                 <div>Avg WPM</div>
                 <div>Avg ACC</div>
@@ -289,47 +229,14 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Global Weaknesses Section */}
         <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
-          ตาวิเศษ (Global Weakness)
+          Play History
         </h1>
-        <p className="text-[#9CA3AF] mb-4">The characters you have missed the most across all your play sessions.</p>
-
-        <div className="flex flex-wrap gap-4 mb-10">
-          {loadingGlobalWeaknesses ? (
-            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white">Loading weakness analysis...</div>
-          ) : globalWeaknesses.length === 0 ? (
-            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white flex flex-col items-center">
-              <span className="text-3xl mb-2">🎉</span>
-              <p>You have no recorded mistakes! Perfect accuracy!</p>
-            </div>
-          ) : (
-            globalWeaknesses.map((weakness, index) => (
-              <div key={weakness.character} className={`flex flex-col items-center justify-center p-4 rounded-xl shadow-lg border-b-4 ${index === 0 ? 'bg-[#ef444420] border-[#ef4444]' : 'bg-[#1E2332] border-[#2A3247]'} flex-1 min-w-[120px]`}>
-                <div className={`text-4xl font-bold mb-2 ${index === 0 ? 'text-[#ef4444]' : 'text-white'}`}>
-                  {weakness.character.toUpperCase()}
-                </div>
-                <div className="text-sm text-gray-400 capitalize bg-[#252B3D] px-3 py-1 rounded-full">
-                  {weakness.errorCount} mistakes
-                </div>
-                {index === 0 && (
-                  <div className="mt-2 text-xs font-bold text-[#ef4444] tracking-wider uppercase">
-                    Highest Error Rate
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-        </div>
-        <div className="w-full max-w-4xl mx-auto">
-          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
-            Play History
-          </h1>
-          <p className="text-[#9CA3AF] mb-4">Click on any session to view detailed analysis and your weak points.</p>
-          <div className="w-full min-w-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <p className="text-[#9CA3AF] mb-4">Click on any session to view detailed analysis and your weak points.</p>
+        
+        <div className="w-full min-w-0 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            className={`grid grid-cols-[minmax(80px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(120px,1fr)_80px_80px_100px] md:grid-cols-[minmax(150px,1fr)_100px_100px_120px] lg:grid-cols-[300px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] pt-4 sm:pt-2 text-xs sm:text-sm md:text-base`}
+            className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] pt-4 sm:pt-2 text-xs sm:text-sm md:text-base`}
           >
             <div className="ml-0 sm:ml-5 md:ml-10">Mode</div>
             <div>WPM</div>
@@ -337,9 +244,8 @@ export default function Profile() {
             <div className="hidden sm:block">Date</div>
             <div className="sm:hidden">D</div>
           </div>
-          <div
-            className={`flex flex-col min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base max-h-[400px] overflow-y-auto border border-[#2A3247] rounded-lg`}
-          >
+          
+          <div className={`flex flex-col min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base max-h-[400px] overflow-y-auto border border-[#2A3247] rounded-lg`}>
             {loadingHistory ? (
               <div className="py-8 text-center bg-[#1E2332] rounded-lg text-white">Loading history...</div>
             ) : history.length === 0 ? (
@@ -347,27 +253,27 @@ export default function Profile() {
             ) : (
               <div className="space-y-0">
                 {history.map((session, index) => (
-                <div
-                  key={session.id}
-                  onClick={() => handleRowClick(session.id)}
-                  className={`grid grid-cols-[minmax(80px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(120px,1fr)_80px_80px_100px] md:grid-cols-[minmax(150px,1fr)_100px_100px_120px] lg:grid-cols-[300px_180px_180px_180px]
-                        px-4
-                        h-10 sm:h-12 md:h-14 lg:h-16
-                       items-center bg-[#1E2332] text-white cursor-pointer hover:bg-[#2A3247] transition-colors
-                       ${index === 0 ? 'rounded-t-lg' : ''} 
-                       ${index === history.length - 1 ? 'rounded-b-lg' : ''}
-                       border-b border-[#2A3247]`}
-                >
-                  <div className="pl-0 sm:pl-5 md:pl-10 truncate capitalize text-xs sm:text-sm md:text-base">
-                    <span className="sm:hidden">{session.mode?.name?.slice(0,3)} {session.symbol?.name?.slice(0,3)} {session.difficulty?.amtWord}</span>
-                    <span className="hidden sm:block md:hidden">{session.mode?.name?.slice(0,6)} {session.symbol?.name?.slice(0,6)} {session.difficulty?.amtWord}</span>
-                    <span className="hidden md:inline">{session.mode?.name} {session.symbol?.name} {session.difficulty?.amtWord}</span>
+                  <div
+                    key={session.id}
+                    onClick={() => handleRowClick(session.id)}
+                    className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px]
+                      px-4
+                      h-10 sm:h-12 md:h-14 lg:h-16
+                     items-center bg-[#1E2332] text-white cursor-pointer hover:bg-[#2A3247] transition-colors
+                     ${index === 0 ? 'rounded-t-lg' : ''} 
+                     ${index === history.length - 1 ? 'rounded-b-lg' : ''}
+                     ${index < history.length - 1 ? 'border-b border-[#2A3247]' : ''}`}
+                  >
+                    <div className="pl-0 sm:pl-5 md:pl-10 truncate capitalize text-xs sm:text-sm md:text-base">
+                      <span className="sm:hidden">{session.mode?.name?.slice(0,3)} {session.symbol?.name?.slice(0,3)} {session.difficulty?.amtWord}</span>
+                      <span className="hidden sm:block md:hidden">{session.mode?.name?.slice(0,6)} {session.symbol?.name?.slice(0,6)} {session.difficulty?.amtWord}</span>
+                      <span className="hidden md:inline">{session.mode?.name} {session.symbol?.name} {session.difficulty?.amtWord}</span>
+                    </div>
+                    <div className="text-xs sm:text-sm md:text-base">{session.wpm}</div>
+                    <div className="text-xs sm:text-sm md:text-base">{session.accuracy}%</div>
+                    <div className="text-xs sm:text-sm md:text-base">{new Date(session.createdAt).toLocaleDateString()}</div>
                   </div>
-                  <div className="text-xs sm:text-sm md:text-base">{session.wpm}</div>
-                  <div className="text-xs sm:text-sm md:text-base">{session.accuracy}%</div>
-                  <div className="text-xs sm:text-sm md:text-base">{new Date(session.createdAt).toLocaleDateString()}</div>
-                </div>
-              ))}
+                ))}
               </div>
             )}
           </div>
@@ -391,9 +297,12 @@ export default function Profile() {
                     onClick={() => setSelectedSession(null)}
                     className="text-gray-400 hover:text-white transition-colors"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                   </button>
                 </div>
+                
                 <div className="flex gap-6 mt-4">
                   <div className="bg-[#2A3247] px-4 py-2 rounded-lg">
                     <div className="text-sm text-gray-400">WPM</div>
@@ -409,7 +318,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-
+              
               <div className="p-6 bg-[#252B3D]">
                 <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
                   🔍 Weakness Analysis
@@ -418,11 +327,11 @@ export default function Profile() {
                   {getWeakness(selectedSession.details)}
                 </p>
               </div>
-
+              
               <div className="p-6 overflow-y-auto flex-1">
                 <h3 className="text-lg font-bold text-white mb-4">Input Timeline</h3>
                 {selectedSession.details && selectedSession.details.length > 0 ? (
-                  <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 sm:gap-4 bg-[#252B3D] p-2 sm:p-4 rounded-xl items-center text-xs sm:text-sm w-full min-w-[400px] sm:min-w-[500px]">
+                  <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 sm:gap-4 bg-[#252B3D] p-2 sm:p-4 rounded-xl items-center text-xs sm:text-sm w-full overflow-x-auto min-w-[400px] sm:min-w-[500px]">
                     <div className="font-bold text-gray-400">#</div>
                     <div className="font-bold text-gray-400">Question</div>
                     <div className="font-bold text-gray-400">Answer</div>
@@ -430,7 +339,7 @@ export default function Profile() {
                     <div className="font-bold text-gray-400 sm:hidden">✓</div>
                     <div className="font-bold text-gray-400 hidden sm:block">Time</div>
                     <div className="font-bold text-gray-400 sm:hidden">T</div>
-
+                    
                     {selectedSession.details.map((detail, idx) => (
                       <React.Fragment key={idx}>
                         <div className="text-gray-500">{detail.orderIndex}</div>
@@ -449,11 +358,11 @@ export default function Profile() {
             </div>
           </div>
         )}
-        <div className="w-full max-w-4xl mx-auto">
-          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
-            Best Scores by Mode
-          </h1>
-          <div className="w-full min-w-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+        
+        <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
+          Best Scores by Mode
+        </h1>
+        <div className="w-full min-w-0 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
             className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] pt-4 sm:pt-6 text-xs sm:text-sm md:text-base`}
           >
@@ -463,42 +372,91 @@ export default function Profile() {
             <div className="hidden sm:block">Date</div>
             <div className="sm:hidden">D</div>
           </div>
-          <div
-            className={`flex flex-col ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base border border-[#2A3247] rounded-lg`}
-          >
-            {loadingBestScores ? (
-              <div className="py-8 text-center bg-[#1E2332] rounded-lg text-white">Loading best scores...</div>
-            ) : (
-              ALL_MODE_COMBOS.map((combo, index) => {
-                const score = findBestScore(combo.mode, combo.symbol, combo.amtWord);
-                const label = `${combo.mode} ${combo.symbol} ${combo.amtWord}`;
-                return (
-                  <div
-                    key={label}
-                    className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px]
-                        px-4
-                        h-10 sm:h-12 md:h-14 lg:h-16
-                       items-center bg-[#1E2332] text-white
-                       ${index === 0 ? 'rounded-t-lg' : ''}
-                       ${index === ALL_MODE_COMBOS.length - 1 ? 'rounded-b-lg' : ''}
-                       border-b border-[#2A3247]`}
-                  >
-                    <div className="pl-0 sm:pl-5 md:pl-10 truncate capitalize text-xs sm:text-sm md:text-base">
-                      <span className="sm:hidden">{combo.mode.slice(0,3)} {combo.symbol.slice(0,3)} {combo.amtWord}</span>
-                      <span className="hidden sm:block md:hidden">{combo.mode} {combo.symbol} {combo.amtWord}</span>
-                      <span className="hidden md:inline">{label}</span>
-                    </div>
-                    <div className="text-xs sm:text-sm md:text-base">{score ? score.highWpm : 'N/A'}</div>
-                    <div className="text-xs sm:text-sm md:text-base">{score ? `${score.highAccuracy}%` : 'N/A'}</div>
-                    <div className="text-xs sm:text-sm md:text-base">{score ? new Date(score.updatedAt).toLocaleDateString() : 'N/A'}</div>
-                  </div>
-                );
-              })
-            )}
+          
+          <div className={`flex flex-col min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base`}>
+            <div
+              className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-10 sm:h-12 md:h-14 lg:h-16
+               items-center bg-[#1E2332] text-white rounded-t-lg`}
+            >
+              <div className="pl-0 sm:pl-5 md:pl-10 truncate text-xs sm:text-sm md:text-base">
+                <span className="sm:hidden">enc a-z 10</span>
+                <span className="hidden sm:block md:hidden">Encode a-z</span>
+                <span className="hidden md:inline">Encode a-z 10</span>
+              </div>
+              <div className="text-xs sm:text-sm md:text-base">N/A</div>
+              <div className="text-xs sm:text-sm md:text-base">N/A</div>
+              <div className="text-xs sm:text-sm md:text-base">01/01/2026</div>
+            </div>
+            
+            <div
+              className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-10 sm:h-12 md:h-14 lg:h-16
+               items-center bg-[#1E2332] text-white`}
+            >
+              <div className="pl-0 sm:pl-5 md:pl-10 truncate text-xs sm:text-sm md:text-base">
+                <span className="sm:hidden">enc a-z 15</span>
+                <span className="hidden sm:block md:hidden">Encode a-z</span>
+                <span className="hidden md:inline">Encode a-z 15</span>
+              </div>
+              <div className="text-xs sm:text-sm md:text-base">N/A</div>
+              <div className="text-xs sm:text-sm md:text-base">N/A</div>
+              <div className="text-xs sm:text-sm md:text-base">01/01/2026</div>
+            </div>
+            
+            <div
+              className={`grid grid-cols-[minmax(140px,1fr)_80px_80px_100px] sm:grid-cols-[minmax(200px,1fr)_100px_100px_120px] md:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-12 sm:h-16
+               items-center bg-[#1E2332] text-white rounded-b-lg`}
+            >
+              <div className="pl-0 sm:pl-10 truncate">Encode a-z 50</div>
+              <div>N/A</div>
+              <div>N/A</div>
+              <div>01/01/2026</div>
+            </div>
+            
+            <div
+              className={`grid grid-cols-[minmax(140px,1fr)_80px_80px_100px] sm:grid-cols-[minmax(200px,1fr)_100px_100px_120px] md:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-12 sm:h-16
+               items-center bg-[#1E2332] text-white rounded-b-lg`}
+            >
+              <div className="pl-0 sm:pl-10 truncate">Encode word 10</div>
+              <div>N/A</div>
+              <div>N/A</div>
+              <div>01/01/2026</div>
+            </div>
+            
+            <div
+              className={`grid grid-cols-[minmax(140px,1fr)_80px_80px_100px] sm:grid-cols-[minmax(200px,1fr)_100px_100px_120px] md:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-12 sm:h-16
+               items-center bg-[#1E2332] text-white rounded-b-lg`}
+            >
+              <div className="pl-0 sm:pl-10 truncate">Encode word 15</div>
+              <div>N/A</div>
+              <div>N/A</div>
+              <div>01/01/2026</div>
+            </div>
+            
+            <div
+              className={`grid grid-cols-[minmax(140px,1fr)_80px_80px_100px] sm:grid-cols-[minmax(200px,1fr)_100px_100px_120px] md:grid-cols-[400px_180px_180px_180px]
+                px-4
+                h-12 sm:h-16
+               items-center bg-[#1E2332] text-white rounded-b-lg`}
+            >
+              <div className="pl-0 sm:pl-10 truncate">Encode word 100</div>
+              <div>N/A</div>
+              <div>N/A</div>
+              <div>01/01/2026</div>
+            </div>
           </div>
         </div>
-        </div>
-        <div className="flex justify-center">
+        
+        <div className="flex justify-center gap-4">
           <button
             onClick={handleLogout}
             className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed max-w-[280px] sm:max-w-none`}

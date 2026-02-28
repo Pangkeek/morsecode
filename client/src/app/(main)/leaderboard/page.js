@@ -19,9 +19,10 @@ export default function Leaderboard() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      setLoading(true);
       try {
         const API_URL = "https://morsecode-production.up.railway.app/api";
-        const res = await fetch(`${API_URL}/leaderboard`);
+        const res = await fetch(`${API_URL}/leaderboard/by-mode?mode=${mode}&symbol=${type}&amtWord=${length}`);
 
         if (res.ok) {
           const data = await res.json();
@@ -35,7 +36,7 @@ export default function Leaderboard() {
     };
 
     fetchLeaderboard();
-  }, []);
+  }, [mode, type, length]);
 
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-hidden px-4 box-border flex flex-col items-center">
@@ -201,9 +202,9 @@ export default function Leaderboard() {
                   >
                     <div className="pl-2">{index === 0 ? "👑" : index + 1}</div>
                     <div className="truncate pr-2">{player.username}</div>
-                    <div className={index === 0 ? "text-yellow-400" : ""}>{Math.round(player.avgWpm)}</div>
-                    <div className={index === 0 ? "text-yellow-400" : ""}>{Math.round(player.avgAccuracy)}%</div>
-                    <div>-</div> {/* Global ranking implies all-time, date is not strictly applicable, using dash or could use totalPlay */}
+                    <div className={index === 0 ? "text-yellow-400" : ""}>{Math.round(player.highWpm ?? 0)}</div>
+                    <div className={index === 0 ? "text-yellow-400" : ""}>{Math.round(player.highAccuracy ?? 0)}%</div>
+                    <div>{player.updatedAt ? new Date(player.updatedAt).toLocaleDateString() : '-'}</div>
                   </div>
                 ))
               )}
