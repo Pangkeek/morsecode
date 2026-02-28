@@ -111,7 +111,7 @@ export default function Home() {
       return null;
     }
 
-    const timeTaken = (finalCompTime - firstInputTime) / 1000; // in seconds
+    const timeTaken = (sessionCompletedTime - firstInputTime) / 1000; // in seconds
     const minutesElapsed = timeTaken / 60;
 
     // Calculate characters/words completed
@@ -216,7 +216,6 @@ export default function Home() {
     }
 
     setCurrentLine(0);
-
     setDecodeCurrentLine(0);
   }, [mode, previousMode, type, previousType]);
 
@@ -234,49 +233,38 @@ export default function Home() {
 
   const [charInput, setCharInput] = useState("");
 
-  // State for sliding window - track which line is currently visible
+  const containerRef = React.useRef(null);
+  const innerWrapRef = React.useRef(null);
 
+  const mobileInputRef = React.useRef(null);
+
+  // State for 2-line sliding window
   const [currentLine, setCurrentLine] = useState(0);
-
   const [decodeCurrentLine, setDecodeCurrentLine] = useState(0);
 
-  const containerRef = React.useRef(null);
-
-  // Effect to update current line based on progress - wait until line is fully completed
-
+  // Effect to update current line based on actual DOM positions
   React.useEffect(() => {
-    // Encode mode: Show 20 characters at a time
+    const measureCurrentLine = () => {
+      if (!innerWrapRef.current) return 0;
+      const children = innerWrapRef.current.children;
+      if (!children || children.length === 0) return 0;
 
-    const charsPerLine = 20;
+      const firstChild = children[0];
+      const lineHeight = firstChild.offsetHeight;
+      if (lineHeight === 0) return 0;
 
-    const completedLines = Math.floor(currentCharIndex / charsPerLine);
+      // For a-z mode: each child is a letter <p>, index matches currentCharIndex
+      // For word mode: children include letters and gap spans, but we only need line of current char
+      const targetChild = children[currentCharIndex] || children[children.length - 1];
+      const relativeTop = targetChild.offsetTop - firstChild.offsetTop;
+      const lineNumber = Math.round(relativeTop / lineHeight);
+      return lineNumber;
+    };
 
-    setCurrentLine(completedLines);
-
-    // Decode mode: Account for alternating line lengths (13, 12, 13, 12...)
-
-    // Line 0: chars 0-12 (13 chars), Line 1: chars 13-24 (12 chars), Line 2: chars 25-37 (13 chars), etc.
-
-    let decodeCompletedLines = 0;
-
-    let remainingChars = currentCharIndex;
-
-    while (remainingChars > 0) {
-      const isOddLine = decodeCompletedLines % 2 === 1;
-
-      const charsInThisLine = isOddLine ? 12 : 13;
-
-      if (remainingChars >= charsInThisLine) {
-        remainingChars -= charsInThisLine;
-
-        decodeCompletedLines++;
-      } else {
-        break;
-      }
-    }
-
-    setDecodeCurrentLine(decodeCompletedLines);
-  }, [currentCharIndex]);
+    const lineNumber = measureCurrentLine();
+    setCurrentLine(lineNumber);
+    setDecodeCurrentLine(lineNumber);
+  }, [currentCharIndex, mode]);
 
   // Generate full 100-length arrays
 
@@ -1444,6 +1432,9 @@ export default function Home() {
 
               setDecodeCurrentCharIndex(0);
 
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
+
               setEncodeWordIndex(0);
 
               setEncodeLetterInWordIndex(0);
@@ -1451,10 +1442,6 @@ export default function Home() {
               setDecodeWordIndex(0);
 
               setDecodeLetterInWordIndex(0);
-
-              setCurrentLine(0);
-
-              setDecodeCurrentLine(0);
 
               setIsError(false);
 
@@ -1483,41 +1470,60 @@ export default function Home() {
             } flex flex-col items-center px-4`}
         >
           <div
-            className="flex flex-wrap justify-center mt-20 sm:mt-40 max-w-7xl relative px-4"
-            style={{ height: "60px", overflow: "hidden" }}
+            className="flex flex-wrap justify-center mt-20 sm:mt-40 max-w-7xl relative px-4 h-[120px] sm:h-[159px] overflow-hidden"
           >
             <div
+              ref={innerWrapRef}
               className="flex flex-wrap justify-center"
-              style={
-                type === "word"
-                  ? undefined
-                  : {
-                    transform: `translateY(-${decodeCurrentLine * 80}px)`,
-
-                    transition:
-                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+              style={{
+                transform: `translateY(-${Math.max(0, decodeCurrentLine - 1) * (() => {
+                  if (!innerWrapRef.current) {
+                    const width = window?.innerWidth || 768;
+                    if (width < 640) return 40;
+                    if (width < 1024) return 45;
+                    return 53;
                   }
-              }
+                  const firstChild = innerWrapRef.current.children[0];
+                  return firstChild ? firstChild.offsetHeight : 53;
+                })()}px)`,
+                transition: "transform 0.3s ease",
+              }}
             >
-              {(type === "word" ? decodeCurrentWordMorse : targetLetters).map(
-                (letter, index) => {
-                  const currentIdx =
-                    type === "word"
-                      ? decodeLetterInWordIndex
-                      : currentCharIndex;
+              {type === "word"
+                ? targetWordsDecode.map((wordMorse, wIdx) => (
+                  <React.Fragment key={`dw-${wIdx}`}>
+                    {wordMorse.map((morse, lIdx) => {
+                      const isPast = wIdx < decodeWordIndex || (wIdx === decodeWordIndex && lIdx < decodeLetterInWordIndex);
+                      const isCurrent = wIdx === decodeWordIndex && lIdx === decodeLetterInWordIndex;
 
-                  const isPast =
-                    type === "word"
-                      ? index < decodeLetterInWordIndex
-                      : index < currentCharIndex;
-
-                  const isCurrent = index === currentIdx;
+                      return (
+                        <p
+                          key={`dw-${wIdx}-${lIdx}`}
+                          className={`${spmono.className
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                              ? "text-white"
+                              : isCurrent && isError
+                                ? "text-red-500 animate-shake"
+                                : "text-[#5a5e61]"
+                            }`}
+                          style={{ margin: "0 0.25rem" }}
+                        >
+                          {morse}
+                        </p>
+                      );
+                    })}
+                    {wIdx < targetWordsDecode.length - 1 && (
+                      <span key={`dw-gap-${wIdx}`} className="inline-block w-6" />
+                    )}
+                  </React.Fragment>
+                ))
+                : targetLetters.map((letter, index) => {
+                  const isPast = index < currentCharIndex;
+                  const isCurrent = index === currentCharIndex;
 
                   return (
                     <p
-                      key={
-                        type === "word" ? `w${decodeWordIndex}-${index}` : index
-                      }
+                      key={index}
                       className={`${spmono.className
                         } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
                           ? "text-white"
@@ -1530,8 +1536,7 @@ export default function Home() {
                       {letter}
                     </p>
                   );
-                },
-              )}
+                })}
             </div>
 
             {type === "word" && targetWordsDecode.length > 0 && (
@@ -1559,7 +1564,6 @@ export default function Home() {
               setDecodeCurrentCharIndex(0);
 
               setCurrentLine(0);
-
               setDecodeCurrentLine(0);
 
               setIsError(false);
@@ -1592,16 +1596,55 @@ export default function Home() {
             {isSuccess
               ? successDisplay
               : charInput || (
-                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">type</span>
+                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
+                  <span className="hidden md:inline">type</span>
+                  <span className="md:hidden">tap below to type</span>
+                </span>
               )}
           </p>
+
+          {/* Hidden input for mobile keyboard - decode mode */}
+          <input
+            ref={mobileInputRef}
+            type="text"
+            inputMode="text"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            style={{ position: 'fixed', opacity: 0, width: '1px', height: '1px', top: '-100px' }}
+            onInput={(e) => {
+              const val = e.target.value;
+              if (val.length > 0) {
+                const key = val.charAt(val.length - 1);
+                if (key.match(/[a-zA-Z]/)) {
+                  window.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: key,
+                    code: `Key${key.toUpperCase()}`,
+                    bubbles: true
+                  }));
+                }
+                e.target.value = '';
+              }
+            }}
+          />
+
+          {/* Tap to type button for mobile/tablet */}
+          <div
+            className="md:hidden w-full max-w-[300px] h-24 bg-[#1E2332] rounded-xl flex items-center justify-center mt-6 select-none cursor-pointer active:bg-[#2A3247] transition-colors"
+            onClick={() => mobileInputRef.current?.focus()}
+          >
+            <p className={`${spmono.className} font-bold text-[#9CA3AF] text-lg select-none pointer-events-none`}>
+              tap to type
+            </p>
+          </div>
 
           <div className="mt-30 px-4">
             <div className="bg-[#717171] text-[11px]">
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1`}
               >
-                type - to input
+                <span className="hidden md:inline">type - to input</span>
+                <span className="md:hidden">tap button - to type</span>
               </p>
             </div>
 
@@ -1609,7 +1652,8 @@ export default function Home() {
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3`}
               >
-                enter - to reset
+                <span className="hidden md:inline">enter - to reset</span>
+                <span className="md:hidden">tap reset icon above</span>
               </p>
             </div>
           </div>
@@ -1712,57 +1756,74 @@ export default function Home() {
       ) : (
         <>
           <div
-            ref={containerRef}
             className={`flex flex-wrap mt-20 sm:mt-40 max-w-7xl relative px-4 ${type === "word" ? "justify-center" : ""
-              }`}
-            style={{ height: "60px", overflow: "hidden" }}
+              } h-[120px] sm:h-[159px] overflow-hidden`}
           >
             <div
-              className={`flex flex-wrap ${type === "word" ? "justify-center" : ""
-                }`}
-              style={
-                type === "word"
-                  ? undefined
-                  : {
-                    transform: `translateY(-${currentLine * 80}px)`,
-
-                    transition:
-                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+              ref={innerWrapRef}
+              className={`flex flex-wrap ${type === "word" ? "justify-center" : ""}`}
+              style={{
+                transform: `translateY(-${Math.max(0, currentLine - 1) * (() => {
+                  if (!innerWrapRef.current) {
+                    const width = window?.innerWidth || 768;
+                    if (width < 640) return 40;
+                    if (width < 1024) return 45;
+                    return 53;
                   }
-              }
+                  const firstChild = innerWrapRef.current.children[0];
+                  return firstChild ? firstChild.offsetHeight : 53;
+                })()}px)`,
+                transition: "transform 0.3s ease",
+              }}
             >
-              {(type === "word"
-                ? encodeCurrentWord.split("")
-                : targetLettersEncode
-              ).map((letter, index) => {
-                const currentIdx =
-                  type === "word" ? encodeLetterInWordIndex : currentCharIndex;
+              {type === "word"
+                ? targetWordsEncode.map((word, wIdx) => (
+                  <React.Fragment key={`ew-${wIdx}`}>
+                    {word.split("").map((letter, lIdx) => {
+                      const isPast = wIdx < encodeWordIndex || (wIdx === encodeWordIndex && lIdx < encodeLetterInWordIndex);
+                      const isCurrent = wIdx === encodeWordIndex && lIdx === encodeLetterInWordIndex;
 
-                const isPast =
-                  type === "word"
-                    ? index < encodeLetterInWordIndex
-                    : index < currentCharIndex;
+                      return (
+                        <p
+                          key={`ew-${wIdx}-${lIdx}`}
+                          className={`${spmono.className
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                              ? "text-white"
+                              : isCurrent && isError
+                                ? "text-red-500 animate-shake"
+                                : "text-[#5a5e61]"
+                            }`}
+                          style={{ margin: "0 0.25rem" }}
+                        >
+                          {letter}
+                        </p>
+                      );
+                    })}
+                    {wIdx < targetWordsEncode.length - 1 && (
+                      <span key={`ew-gap-${wIdx}`} className="inline-block w-6" />
+                    )}
+                  </React.Fragment>
+                ))
+                : targetLettersEncode.map((letter, index) => {
+                  const isPast = index < currentCharIndex;
+                  const isCurrent = index === currentCharIndex;
 
-                const isCurrent = index === currentIdx;
-
-                return (
-                  <p
-                    key={
-                      type === "word" ? `w${encodeWordIndex}-${index}` : index
-                    }
-                    className={`${spmono.className
-                      } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
-                        ? "text-white"
-                        : isCurrent && isError
-                          ? "text-red-500 animate-shake"
-                          : "text-[#5a5e61]"
-                      }`}
-                    style={{ margin: "0 1rem" }}
-                  >
-                    {letter}
-                  </p>
-                );
-              })}
+                  return (
+                    <p
+                      key={index}
+                      className={`${spmono.className
+                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                          ? "text-white"
+                          : isCurrent && isError
+                            ? "text-red-500 animate-shake"
+                            : "text-[#5a5e61]"
+                        }`}
+                      style={{ margin: "0 1rem" }}
+                    >
+                      {letter}
+                    </p>
+                  );
+                })}
             </div>
 
             {type === "word" && targetWordsEncode.length > 0 && (
@@ -1787,6 +1848,9 @@ export default function Home() {
 
               setDecodeCurrentCharIndex(0);
 
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
+
               setEncodeWordIndex(0);
 
               setEncodeLetterInWordIndex(0);
@@ -1794,10 +1858,6 @@ export default function Home() {
               setDecodeWordIndex(0);
 
               setDecodeLetterInWordIndex(0);
-
-              setCurrentLine(0);
-
-              setDecodeCurrentLine(0);
 
               setIsError(false);
 
@@ -1828,17 +1888,37 @@ export default function Home() {
               ? successDisplay
               : morseInput || (
                 <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
-                  press spacebar
+                  <span className="hidden md:inline">press spacebar</span>
+                  <span className="md:hidden">hold button below</span>
                 </span>
               )}
           </p>
+
+          {/* Touch input button for mobile/tablet */}
+          <div
+            className={`md:hidden w-full max-w-[300px] h-24 rounded-xl flex items-center justify-center mt-6 select-none transition-colors ${isSpacebarPressed ? 'bg-[#EF4444]' : 'bg-[#1E2332] active:bg-[#2A3247]'}`}
+            style={{ touchAction: 'none' }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
+            }}
+          >
+            <p className={`${spmono.className} font-bold text-lg select-none pointer-events-none ${isSpacebarPressed ? 'text-white' : 'text-[#9CA3AF]'}`}>
+              {isSpacebarPressed ? '...' : 'hold to input'}
+            </p>
+          </div>
 
           <div className="mt-30 px-4">
             <div className="bg-[#717171] text-[11px]">
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1`}
               >
-                spacebar - to input
+                <span className="hidden md:inline">spacebar - to input</span>
+                <span className="md:hidden">hold - dot / long hold - dash</span>
               </p>
             </div>
 
@@ -1846,7 +1926,8 @@ export default function Home() {
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3 text-center`}
               >
-                enter - to reset
+                <span className="hidden md:inline">enter - to reset</span>
+                <span className="md:hidden">tap reset icon above</span>
               </p>
             </div>
           </div>

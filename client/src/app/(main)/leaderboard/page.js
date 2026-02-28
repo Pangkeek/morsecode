@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Space_Mono } from "next/font/google";
+import { useAuth } from "@/contexts/AuthContext";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
@@ -9,6 +10,7 @@ const spmono = Space_Mono({
 });
 
 export default function Leaderboard() {
+  const { user } = useAuth();
   const [selectedMode, setSelectedMode] = useState('character');
   const [mode, setMode] = useState('decode');
   const [type, setType] = useState('a-z');
@@ -16,6 +18,9 @@ export default function Leaderboard() {
 
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const myEntry = user ? leaders.find((p) => p.id === user.id) : null;
+  const myRank = myEntry ? leaders.indexOf(myEntry) + 1 : null;
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -140,15 +145,15 @@ export default function Leaderboard() {
               <div
                 className={`${spmono.className} w-24 h-24 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[28px] text-white outline outline-[#EF4444]`}
               >
-                <p className="mb-1">jp</p>
+                <p className="mb-1">{user?.username?.slice(0, 2)?.toLowerCase() || '??'}</p>
               </div>
               <p className={`${spmono.className} font-bold text-[20px] mt-4`}>
-                Pangki
+                {user?.username || 'Guest'}
               </p>
               <p
                 className={`${spmono.className} font-bold text-[24px] text-[#9CA3AF]`}
               >
-                Rank : N/A{" "}
+                Rank : {myRank ?? 'N/A'}
               </p>
               <p
                 className={`${spmono.className} font-bold text-[32px] place-self-start mt-4`}
@@ -158,7 +163,7 @@ export default function Leaderboard() {
               <p
                 className={`${spmono.className} font-bold text-[50px] text-[#9CA3AF]`}
               >
-                N/A
+                {myEntry ? Math.round(myEntry.highWpm) : 'N/A'}
               </p>
               <p
                 className={`${spmono.className} font-bold text-[32px] place-self-start`}
@@ -168,7 +173,7 @@ export default function Leaderboard() {
               <p
                 className={`${spmono.className} font-bold text-[50px] text-[#9CA3AF]`}
               >
-                N/A
+                {myEntry ? `${Math.round(myEntry.highAccuracy)}%` : 'N/A'}
               </p>
             </div>
           </div>
