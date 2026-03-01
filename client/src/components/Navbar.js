@@ -20,6 +20,7 @@ export default function Navbar() {
         { href: '/practice', label: 'practice' },
         { href: '/leaderboard', label: 'leaderboard' },
         { href: '/about', label: 'about' },
+        { href: '/setting', label: '⚙️' },
     ];
 
     if (user && user.role === 'ADMIN') {

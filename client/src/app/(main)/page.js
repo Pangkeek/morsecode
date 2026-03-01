@@ -14,7 +14,7 @@ const spmono = Space_Mono({
 });
 
 export default function Home() {
-  const { submitGameResult } = useAuth();
+  const { submitGameResult, settings } = useAuth();
   const [mode, setMode] = useState("encode");
 
   const [type, setType] = useState("a-z");
@@ -220,17 +220,69 @@ export default function Home() {
   }, [mode, previousMode, type, previousType]);
 
   const [isError, setIsError] = useState(false);
-
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [successDisplay, setSuccessDisplay] = useState("");
 
   const [inputTimeout, setInputTimeout] = useState(null);
 
+  // Audio context for continuous morse code sounds
+  // Use refs so AudioContext and oscillator are created once and never recreated on re-render.
+  // Creating `new AudioContext()` on every render hits the browser's ~6 context limit
+  // and causes sound to stop after a few characters.
+  const audioContextRef = React.useRef(null);
+  const currentOscillatorRef = React.useRef(null);
+
+  const getAudioContext = () => {
+    if (typeof window === 'undefined') return null;
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContextRef.current;
+  };
+
+  const stopMorseSound = () => {
+    if (currentOscillatorRef.current) {
+      currentOscillatorRef.current.stop();
+      currentOscillatorRef.current.disconnect();
+      currentOscillatorRef.current = null;
+    }
+  };
+
+  const startMorseSound = (frequency = 600) => {
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
+
+    // Resume context if suspended due to browser autoplay policy
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    // Stop any existing sound
+    if (currentOscillatorRef.current) {
+      currentOscillatorRef.current.stop();
+      currentOscillatorRef.current.disconnect();
+      currentOscillatorRef.current = null;
+    }
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime((settings?.soundVolume || 50) / 100 * 0.3, audioContext.currentTime);
+
+    oscillator.start();
+    currentOscillatorRef.current = oscillator;
+  };
+
   const [isCompleted, setIsCompleted] = useState(false);
 
   const [isFading, setIsFading] = useState(false);
-
   const [charInput, setCharInput] = useState("");
 
   const containerRef = React.useRef(null);
@@ -863,22 +915,25 @@ export default function Home() {
 
   const decodeCurrentWordMorse = targetWordsDecode[decodeWordIndex] ?? [];
 
-  const decodeCurrentMorse =
-    decodeCurrentWordMorse[decodeLetterInWordIndex] ?? null;
+const decodeCurrentMorse =
+  decodeCurrentWordMorse[decodeLetterInWordIndex] ?? null;
 
-  React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code === "Space" && !isSpacebarPressed) {
-        e.preventDefault();
+React.useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.code === "Space" && !isSpacebarPressed) {
+      e.preventDefault();
 
-        setIsSpacebarPressed(true);
+      setIsSpacebarPressed(true);
 
-        setSpacebarStartTime(Date.now());
+      setSpacebarStartTime(Date.now());
 
-        // Record first input time and start session tracking
-        recordFirstInput();
+      // Play continuous morse sound in encode mode
+      if (mode === "encode") {
+        startMorseSound();
+      }
 
-        // Clear any existing timeout when user starts typing
+      // Record first input time and start session tracking
+      recordFirstInput();
 
         if (inputTimeout) {
           clearTimeout(inputTimeout);
@@ -1040,6 +1095,11 @@ export default function Home() {
         e.preventDefault();
 
         const pressDuration = Date.now() - spacebarStartTime;
+
+        // Stop morse sound when spacebar is released
+        if (mode === "encode") {
+          stopMorseSound();
+        }
 
         const morseChar = pressDuration >= 150 ? "-" : ".";
 
