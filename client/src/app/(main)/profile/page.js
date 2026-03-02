@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Space_Mono } from "next/font/google";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
@@ -13,7 +12,6 @@ const spmono = Space_Mono({
 
 export default function Profile() {
   const { user, logout, refreshUser } = useAuth();
-  const { theme } = useTheme();
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [bestScores, setBestScores] = useState([]);
@@ -169,16 +167,10 @@ export default function Profile() {
     <div className="w-full max-w-full min-w-0 overflow-x-hidden px-4 box-border">
       <div className="w-full max-w-[975px] mx-auto min-w-0">
         <div
-          className={`flex flex-col sm:flex-row w-full max-w-full rounded-lg mt-6 sm:mt-10 mb-6 sm:mb-10 p-4 sm:p-6 ${spmono.className} font-bold transition-colors duration-300`}
-          style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+          className={`flex flex-col sm:flex-row w-full max-w-full bg-[#1E2132] rounded-lg mt-6 sm:mt-10 mb-6 sm:mb-10 p-4 sm:p-6 ${spmono.className} font-bold`}
         >
           <div
-            className={`${spmono.className} w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-full flex items-center justify-center font-bold text-[22px] sm:text-[28px] outline transition-colors duration-300`}
-            style={{ 
-              backgroundColor: 'var(--background)', 
-              color: 'var(--foreground)',
-              outlineColor: 'var(--primary)'
-            }}
+            className={`${spmono.className} w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-[#252B3D] rounded-full flex items-center justify-center font-bold text-[22px] sm:text-[28px] text-white outline outline-[#EF4444]`}
           >
             <p className="mb-1">
               {user?.username ? user.username.slice(0, 2).toUpperCase() : '?'}
@@ -187,32 +179,32 @@ export default function Profile() {
           <div className="text-base sm:text-[20px] mt-4 sm:mt-0 sm:ml-10 min-w-0 w-full">
             <div className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-2 gap-2 sm:hidden md:hidden">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Username</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>UID</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Rank</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.rank || '0'}</div>
+                <div className="text-white font-semibold">Username</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
+                <div className="text-white font-semibold">UID</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
+                <div className="text-white font-semibold">Rank</div>
+                <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
               <div className="hidden sm:grid md:hidden grid-cols-2 gap-3">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Username</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>UID</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Rank</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.rank || '0'}</div>
+                <div className="text-white font-semibold">Username</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
+                <div className="text-white font-semibold">UID</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
+                <div className="text-white font-semibold">Rank</div>
+                <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Username</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>UID</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Rank</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.rank || '0'}</div>
+                <div>Username</div>
+                <div>UID</div>
+                <div>Rank</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.username || 'N/A'}>{user?.username || 'N/A'}</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.id || 'N/A'}>{user?.id || 'N/A'}</div>
+                <div className="text-[#9CA3AF]">{user?.rank || '0'}</div>
               </div>
               <div className="grid grid-cols-2 gap-2 sm:hidden md:hidden">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Acc Created</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                <div className="text-white font-semibold">Acc Created</div>
+                <div className="text-[#9CA3AF]">
                   {user?.createdAt 
                     ? new Date(user.createdAt).toLocaleDateString('en-US', { 
                         year: 'numeric', 
@@ -226,20 +218,20 @@ export default function Profile() {
                       })
                   }
                 </div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>E-mail</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Password</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>••••••••</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg WPM</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgWpm?.toFixed(1) || '0.0'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg ACC</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Total Play</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.totalPlay || '0'}</div>
+                <div className="text-white font-semibold">E-mail</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
+                <div className="text-white font-semibold">Password</div>
+                <div className="text-[#9CA3AF]">••••••••</div>
+                <div className="text-white font-semibold">Avg WPM</div>
+                <div className="text-[#9CA3AF]">{user?.avgWpm?.toFixed(1) || '0.0'}</div>
+                <div className="text-white font-semibold">Avg ACC</div>
+                <div className="text-[#9CA3AF]">{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
+                <div className="text-white font-semibold">Total Play</div>
+                <div className="text-[#9CA3AF]">{user?.totalPlay || '0'}</div>
               </div>
               <div className="hidden sm:grid md:hidden grid-cols-2 gap-3">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Acc Created</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                <div className="text-white font-semibold">Acc Created</div>
+                <div className="text-[#9CA3AF]">
                   {user?.createdAt 
                     ? new Date(user.createdAt).toLocaleDateString('en-US', { 
                         year: 'numeric', 
@@ -253,22 +245,22 @@ export default function Profile() {
                       })
                   }
                 </div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>E-mail</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Password</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>••••••••</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg WPM</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgWpm?.toFixed(1) || '0.0'}</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg ACC</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Total Play</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.totalPlay || '0'}</div>
+                <div className="text-white font-semibold">E-mail</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
+                <div className="text-white font-semibold">Password</div>
+                <div className="text-[#9CA3AF]">••••••••</div>
+                <div className="text-white font-semibold">Avg WPM</div>
+                <div className="text-[#9CA3AF]">{user?.avgWpm?.toFixed(1) || '0.0'}</div>
+                <div className="text-white font-semibold">Avg ACC</div>
+                <div className="text-[#9CA3AF]">{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
+                <div className="text-white font-semibold">Total Play</div>
+                <div className="text-[#9CA3AF]">{user?.totalPlay || '0'}</div>
               </div>
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40 mt-6 sm:mt-10">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Acc Created</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>E-mail</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Password</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                <div>Acc Created</div>
+                <div>E-mail</div>
+                <div>Password</div>
+                <div className="text-[#9CA3AF]">
                   {user?.createdAt 
                     ? new Date(user.createdAt).toLocaleDateString('en-US', { 
                         year: 'numeric', 
@@ -282,53 +274,46 @@ export default function Profile() {
                       })
                   }
                 </div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }} className="truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>••••••••</div>
+                <div className="text-[#9CA3AF] truncate" title={user?.email || 'N/A'}>{user?.email || 'N/A'}</div>
+                <div className="text-[#9CA3AF]">••••••••</div>
               </div>
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 gap-x-4 md:gap-x-20 lg:gap-x-40 mt-6">
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg WPM</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Avg ACC</div>
-                <div style={{ color: 'var(--foreground)', fontWeight: '600' }}>Total Play</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgWpm?.toFixed(1) || '0.0'}</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
-                <div style={{ color: 'var(--foreground)', opacity: 0.7 }}>{user?.totalPlay || '0'}</div>
+                <div>Avg WPM</div>
+                <div>Avg ACC</div>
+                <div>Total Play</div>
+                <div className="text-[#9CA3AF]">{user?.avgWpm?.toFixed(1) || '0.0'}</div>
+                <div className="text-[#9CA3AF]">{user?.avgAccuracy?.toFixed(1) || '0.0'}%</div>
+                <div className="text-[#9CA3AF]">{user?.totalPlay || '0'}</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Global Weaknesses Section */}
-        <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`} style={{ color: 'var(--foreground)' }}>
+        <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
           ตาวิเศษ (Global Weakness)
         </h1>
-        <p className="mb-4" style={{ color: 'var(--foreground)', opacity: 0.7 }}>The characters you have missed the most across all your play sessions.</p>
+        <p className="text-[#9CA3AF] mb-4">The characters you have missed the most across all your play sessions.</p>
 
         <div className="flex flex-wrap gap-4 mb-10">
           {loadingGlobalWeaknesses ? (
-            <div className="w-full p-6 rounded-lg text-center transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>Loading weakness analysis...</div>
+            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white">Loading weakness analysis...</div>
           ) : globalWeaknesses.length === 0 ? (
-            <div className="w-full p-6 rounded-lg text-center flex flex-col items-center transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>
+            <div className="w-full bg-[#1E2332] p-6 rounded-lg text-center text-white flex flex-col items-center">
               <span className="text-3xl mb-2">🎉</span>
               <p>You have no recorded mistakes! Perfect accuracy!</p>
             </div>
           ) : (
             globalWeaknesses.map((weakness, index) => (
-              <div key={weakness.character} className={`flex flex-col items-center justify-center p-4 rounded-xl shadow-lg border-b-4 flex-1 min-w-[120px] transition-colors duration-300`} style={{
-                  backgroundColor: index === 0 ? 'var(--primary)' : 'var(--card)',
-                  borderColor: index === 0 ? 'var(--primary)' : 'var(--border)'
-                }}>
-                <div className="text-4xl font-bold mb-2" style={{ color: index === 0 ? 'var(--primary-foreground)' : 'var(--card-foreground)' }}>
+              <div key={weakness.character} className={`flex flex-col items-center justify-center p-4 rounded-xl shadow-lg border-b-4 ${index === 0 ? 'bg-[#ef444420] border-[#ef4444]' : 'bg-[#1E2332] border-[#2A3247]'} flex-1 min-w-[120px]`}>
+                <div className={`text-4xl font-bold mb-2 ${index === 0 ? 'text-[#ef4444]' : 'text-white'}`}>
                   {weakness.character.toUpperCase()}
                 </div>
-                <div className="text-sm capitalize px-3 py-1 rounded-full transition-colors duration-300" style={{ 
-                  backgroundColor: 'var(--background)', 
-                  color: 'var(--foreground)', 
-                  opacity: 0.8
-                }}>
+                <div className="text-sm text-gray-400 capitalize bg-[#252B3D] px-3 py-1 rounded-full">
                   {weakness.errorCount} mistakes
                 </div>
                 {index === 0 && (
-                  <div className="mt-2 text-xs font-bold tracking-wider uppercase" style={{ color: 'var(--primary)' }}>
+                  <div className="mt-2 text-xs font-bold text-[#ef4444] tracking-wider uppercase">
                     Highest Error Rate
                   </div>
                 )}
@@ -338,14 +323,13 @@ export default function Profile() {
         </div>
         </div>
         <div className="w-full max-w-4xl mx-auto">
-          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`} style={{ color: 'var(--foreground)' }}>
+          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
             Play History
           </h1>
-          <p className="mb-4" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Click on any session to view detailed analysis and your weak points.</p>
+          <p className="text-[#9CA3AF] mb-4">Click on any session to view detailed analysis and your weak points.</p>
           <div className="w-full min-w-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            className={`grid grid-cols-[minmax(80px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(120px,1fr)_80px_80px_100px] md:grid-cols-[minmax(150px,1fr)_100px_100px_120px] lg:grid-cols-[300px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-xs sm:text-sm md:text-base transition-colors duration-300`}
-            style={{ color: 'var(--foreground)', opacity: 0.7 }}
+            className={`grid grid-cols-[minmax(80px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(120px,1fr)_80px_80px_100px] md:grid-cols-[minmax(150px,1fr)_100px_100px_120px] lg:grid-cols-[300px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] pt-4 sm:pt-2 text-xs sm:text-sm md:text-base`}
           >
             <div className="ml-0 sm:ml-5 md:ml-10">Mode</div>
             <div>WPM</div>
@@ -354,13 +338,12 @@ export default function Profile() {
             <div className="sm:hidden">D</div>
           </div>
           <div
-            className={`flex flex-col min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-xs sm:text-sm md:text-base max-h-[400px] overflow-y-auto rounded-lg transition-colors duration-300`}
-            style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+            className={`flex flex-col min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base max-h-[400px] overflow-y-auto border border-[#2A3247] rounded-lg`}
           >
             {loadingHistory ? (
-              <div className="py-8 text-center rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>Loading history...</div>
+              <div className="py-8 text-center bg-[#1E2332] rounded-lg text-white">Loading history...</div>
             ) : history.length === 0 ? (
-              <div className="py-8 text-center rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>No play sessions found. Go play some games!</div>
+              <div className="py-8 text-center bg-[#1E2332] rounded-lg text-white">No play sessions found. Go play some games!</div>
             ) : (
               <div className="space-y-0">
                 {history.map((session, index) => (
@@ -370,15 +353,10 @@ export default function Profile() {
                   className={`grid grid-cols-[minmax(80px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(120px,1fr)_80px_80px_100px] md:grid-cols-[minmax(150px,1fr)_100px_100px_120px] lg:grid-cols-[300px_180px_180px_180px]
                         px-4
                         h-10 sm:h-12 md:h-14 lg:h-16
-                       items-center cursor-pointer transition-colors
-                       ${index === 0 ? 'rounded-t-lg' : ''}
+                       items-center bg-[#1E2332] text-white cursor-pointer hover:bg-[#2A3247] transition-colors
+                       ${index === 0 ? 'rounded-t-lg' : ''} 
                        ${index === history.length - 1 ? 'rounded-b-lg' : ''}
-                       border-b`}
-                       style={{ 
-                         backgroundColor: 'var(--card)', 
-                         color: 'var(--card-foreground)',
-                         borderBottom: '1px solid var(--border)'
-                       }}
+                       border-b border-[#2A3247]`}
                 >
                   <div className="pl-0 sm:pl-5 md:pl-10 truncate capitalize text-xs sm:text-sm md:text-base">
                     <span className="sm:hidden">{session.mode?.name?.slice(0,3)} {session.symbol?.name?.slice(0,3)} {session.difficulty?.amtWord}</span>
@@ -397,95 +375,87 @@ export default function Profile() {
 
         {/* Session Details Modal */}
         {selectedSession && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
-            <div className="rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto shadow-2xl relative transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}>
-              <div className="p-6" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 overflow-y-auto">
+            <div className="bg-[#1E2332] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto border border-gray-700 shadow-2xl relative">
+              <div className="p-6 border-b border-gray-700">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className={`${spmono.className} text-2xl font-bold capitalize`} style={{ color: 'var(--card-foreground)' }}>
+                    <h2 className={`${spmono.className} text-2xl font-bold text-white capitalize`}>
                       {selectedSession.mode?.name} {selectedSession.symbol?.name} {selectedSession.difficulty?.amtWord}
                     </h2>
-                    <p className="mt-1" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                    <p className="text-gray-400 mt-1">
                       {new Date(selectedSession.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedSession(null)}
-                    className="transition-colors duration-300"
-                    style={{ color: 'var(--foreground)', opacity: 0.7 }}
+                    className="text-gray-400 hover:text-white transition-colors"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                   </button>
                 </div>
                 <div className="flex gap-6 mt-4">
-                  <div className="px-4 py-2 rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--background)', color: 'var(--card-foreground)' }}>
-                    <div className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>WPM</div>
-                    <div className="text-xl font-bold">{selectedSession.wpm}</div>
+                  <div className="bg-[#2A3247] px-4 py-2 rounded-lg">
+                    <div className="text-sm text-gray-400">WPM</div>
+                    <div className="text-xl font-bold text-white">{selectedSession.wpm}</div>
                   </div>
-                  <div className="px-4 py-2 rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--background)', color: 'var(--card-foreground)' }}>
-                    <div className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Accuracy</div>
-                    <div className="text-xl font-bold">{selectedSession.accuracy}%</div>
+                  <div className="bg-[#2A3247] px-4 py-2 rounded-lg">
+                    <div className="text-sm text-gray-400">Accuracy</div>
+                    <div className="text-xl font-bold text-white">{selectedSession.accuracy}%</div>
                   </div>
-                  <div className="px-2 sm:px-4 py-2 rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--background)', color: 'var(--card-foreground)' }}>
-                    <div className="text-xs sm:text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Time</div>
-                    <div className="text-lg sm:text-xl font-bold">{selectedSession.timeTaken}s</div>
+                  <div className="bg-[#2A3247] px-2 sm:px-4 py-2 rounded-lg">
+                    <div className="text-xs sm:text-sm text-gray-400">Time</div>
+                    <div className="text-lg sm:text-xl font-bold text-white">{selectedSession.timeTaken}s</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 transition-colors duration-300" style={{ backgroundColor: 'var(--background)' }}>
-                <h3 className="text-lg font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--card-foreground)' }}>
+              <div className="p-6 bg-[#252B3D]">
+                <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
                   🔍 Weakness Analysis
                 </h3>
-                <p className="text-lg p-4 rounded-lg transition-colors duration-300" style={{ 
-                  backgroundColor: 'var(--primary)', 
-                  color: 'var(--primary-foreground)',
-                  opacity: 0.2,
-                  border: '1px solid var(--primary)',
-                  borderOpacity: 0.4
-                }}>
+                <p className="text-lg bg-[#ef444420] text-[#EF4444] p-4 rounded-lg border border-[#ef444440]">
                   {getWeakness(selectedSession.details)}
                 </p>
               </div>
 
               <div className="p-6 overflow-y-auto flex-1">
-                <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--card-foreground)' }}>Input Timeline</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Input Timeline</h3>
                 {selectedSession.details && selectedSession.details.length > 0 ? (
-                  <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 sm:gap-4 p-2 sm:p-4 rounded-xl items-center text-xs sm:text-sm w-full min-w-[400px] sm:min-w-[500px] transition-colors duration-300" style={{ backgroundColor: 'var(--background)' }}>
-                    <div className="font-bold" style={{ color: 'var(--foreground)', opacity: 0.7 }}>#</div>
-                    <div className="font-bold" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Question</div>
-                    <div className="font-bold" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Answer</div>
-                    <div className="font-bold hidden sm:block" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Correct</div>
-                    <div className="font-bold sm:hidden" style={{ color: 'var(--foreground)', opacity: 0.7 }}>✓</div>
-                    <div className="font-bold hidden sm:block" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Time</div>
-                    <div className="font-bold sm:hidden" style={{ color: 'var(--foreground)', opacity: 0.7 }}>T</div>
+                  <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 sm:gap-4 bg-[#252B3D] p-2 sm:p-4 rounded-xl items-center text-xs sm:text-sm w-full min-w-[400px] sm:min-w-[500px]">
+                    <div className="font-bold text-gray-400">#</div>
+                    <div className="font-bold text-gray-400">Question</div>
+                    <div className="font-bold text-gray-400">Answer</div>
+                    <div className="font-bold text-gray-400 hidden sm:block">Correct</div>
+                    <div className="font-bold text-gray-400 sm:hidden">✓</div>
+                    <div className="font-bold text-gray-400 hidden sm:block">Time</div>
+                    <div className="font-bold text-gray-400 sm:hidden">T</div>
 
                     {selectedSession.details.map((detail, idx) => (
                       <React.Fragment key={idx}>
-                        <div style={{ color: 'var(--foreground)', opacity: 0.6 }}>{detail.orderIndex}</div>
-                        <div className="px-1 sm:px-2 py-1 rounded inline-block w-fit text-xs sm:text-sm transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>{detail.question}</div>
-                        <div className={`font-bold text-xs sm:text-sm`} style={{ color: detail.isCorrect ? '#22c55e' : '#ef4444' }}>{detail.userAnswer || '-'}</div>
-                        <div className="hidden sm:block text-xs sm:text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>{detail.correctAnswer}</div>
-                        <div className="sm:hidden text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>{detail.isCorrect ? '✓' : '✗'}</div>
-                        <div className="text-right text-xs sm:text-sm" style={{ color: 'var(--foreground)', opacity: 0.6 }}>{detail.responseTime}ms</div>
+                        <div className="text-gray-500">{detail.orderIndex}</div>
+                        <div className="text-white bg-[#1E2332] px-1 sm:px-2 py-1 rounded inline-block w-fit text-xs sm:text-sm">{detail.question}</div>
+                        <div className={`${detail.isCorrect ? 'text-green-400' : 'text-red-400'} font-bold text-xs sm:text-sm`}>{detail.userAnswer || '-'}</div>
+                        <div className="text-gray-400 hidden sm:block text-xs sm:text-sm">{detail.correctAnswer}</div>
+                        <div className="text-gray-400 sm:hidden text-xs">{detail.isCorrect ? '✓' : '✗'}</div>
+                        <div className="text-gray-500 text-right text-xs sm:text-sm">{detail.responseTime}ms</div>
                       </React.Fragment>
                     ))}
                   </div>
                 ) : (
-                  <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>No detailed timeline available for this session.</p>
+                  <p className="text-gray-400">No detailed timeline available for this session.</p>
                 )}
               </div>
             </div>
           </div>
         )}
         <div className="w-full max-w-4xl mx-auto">
-          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`} style={{ color: 'var(--foreground)' }}>
+          <h1 className={`${spmono.className} text-xl sm:text-2xl md:text-[32px] space-mono font-bold mt-6 sm:mt-8`}>
             Best Scores by Mode
           </h1>
           <div className="w-full min-w-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-xs sm:text-sm md:text-base transition-colors duration-300`}
-            style={{ color: 'var(--foreground)', opacity: 0.7 }}
+            className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px] px-4 mb-2 min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] ${spmono.className} font-bold text-[#9CA3AF] pt-4 sm:pt-6 text-xs sm:text-sm md:text-base`}
           >
             <div className="ml-0 sm:ml-5 md:ml-10">Mode</div>
             <div>WPS</div>
@@ -494,11 +464,10 @@ export default function Profile() {
             <div className="sm:hidden">D</div>
           </div>
           <div
-            className={`flex flex-col ${spmono.className} font-bold text-xs sm:text-sm md:text-base rounded-lg transition-colors duration-300`}
-            style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+            className={`flex flex-col ${spmono.className} font-bold text-[#9CA3AF] text-xs sm:text-sm md:text-base border border-[#2A3247] rounded-lg`}
           >
             {loadingBestScores ? (
-              <div className="py-8 text-center rounded-lg transition-colors duration-300" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}>Loading best scores...</div>
+              <div className="py-8 text-center bg-[#1E2332] rounded-lg text-white">Loading best scores...</div>
             ) : (
               ALL_MODE_COMBOS.map((combo, index) => {
                 const score = findBestScore(combo.mode, combo.symbol, combo.amtWord);
@@ -509,14 +478,10 @@ export default function Profile() {
                     className={`grid grid-cols-[minmax(100px,1fr)_60px_60px_80px] sm:grid-cols-[minmax(150px,1fr)_80px_80px_100px] md:grid-cols-[minmax(200px,1fr)_100px_100px_120px] lg:grid-cols-[400px_180px_180px_180px]
                         px-4
                         h-10 sm:h-12 md:h-14 lg:h-16
-                       items-center transition-colors
+                       items-center bg-[#1E2332] text-white
                        ${index === 0 ? 'rounded-t-lg' : ''}
-                       ${index === ALL_MODE_COMBOS.length - 1 ? 'rounded-b-lg' : ''}`}
-                       style={{ 
-                         backgroundColor: 'var(--card)', 
-                         color: 'var(--card-foreground)',
-                         borderBottom: '1px solid var(--border)'
-                       }}
+                       ${index === ALL_MODE_COMBOS.length - 1 ? 'rounded-b-lg' : ''}
+                       border-b border-[#2A3247]`}
                   >
                     <div className="pl-0 sm:pl-5 md:pl-10 truncate capitalize text-xs sm:text-sm md:text-base">
                       <span className="sm:hidden">{combo.mode.slice(0,3)} {combo.symbol.slice(0,3)} {combo.amtWord}</span>
@@ -536,11 +501,7 @@ export default function Profile() {
         <div className="flex justify-center">
           <button
             onClick={handleLogout}
-            className={`${spmono.className} font-bold text-[32px] w-full sm:w-[280px] h-20 rounded-xl mt-[50px] transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed max-w-[280px] sm:max-w-none`}
-            style={{ 
-              backgroundColor: 'var(--primary)', 
-              color: 'var(--primary-foreground)'
-            }}
+            className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] transition-all duration-300 hover:bg-white hover:text-[#EF4444] hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed max-w-[280px] sm:max-w-none`}
           >
             Log out
           </button>

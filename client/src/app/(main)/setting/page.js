@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import Image from "next/image";
 
 const spmono = Space_Mono({
@@ -13,7 +12,6 @@ const spmono = Space_Mono({
 
 export default function Settings() {
   const { user, saveSettings, settings: userSettings } = useAuth();
-  const { theme, updateTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -27,20 +25,20 @@ export default function Settings() {
   }, [userSettings]);
 
   return (
-    <div className="min-h-screen px-4 py-8" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen bg-[#141720] text-white px-4 py-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className={`${spmono.className} text-4xl font-bold mb-2`}>
             Settings
           </h1>
-          <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+          <p className="text-gray-400">
             Customize your Morse code experience
           </p>
         </div>
 
         {/* Settings Content */}
-        <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}>
+        <div className="bg-[#1E2332] rounded-lg p-6">
           {isLoading ? (
             <div className="space-y-6 animate-pulse">
               <div className="flex items-center justify-between">
@@ -64,22 +62,15 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">Theme</h3>
-                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Choose color theme</p>
+                  <p className="text-sm text-gray-400">Choose color theme</p>
                 </div>
                 <select
-                  value={theme}
-                  onChange={(e) => updateTheme(e.target.value)}
-                  className="rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 transition-colors"
-                  style={{ 
-                    backgroundColor: 'var(--card)', 
-                    color: 'var(--card-foreground)', 
-                    border: '1px solid var(--border)',
-                    '--tw-ring-color': 'var(--primary)'
-                  }}
+                  value={settings.theme}
+                  onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
+                  className="bg-[#2A3247] text-white border border-[#3d4556] rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent"
                 >
                   <option value="dark">Dark</option>
-                  <option value="theme-light">Light</option>
-                  <option value="theme-cyberpunk">Cyberpunk</option>
+                  <option value="light">Light</option>
                 </select>
               </div>
 
@@ -87,7 +78,7 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">Sound Volume</h3>
-                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Adjust audio volume ({settings.soundVolume}%)</p>
+                  <p className="text-sm text-gray-400">Adjust audio volume ({settings.soundVolume}%)</p>
                 </div>
                 <input
                   type="range"
@@ -96,7 +87,6 @@ export default function Settings() {
                   value={settings.soundVolume}
                   onChange={(e) => setSettings({ ...settings, soundVolume: parseInt(e.target.value) })}
                   className="w-32"
-                  style={{ accentColor: 'var(--primary)' }}
                 />
               </div>
             </div>
@@ -106,9 +96,7 @@ export default function Settings() {
         {/* Save Button */}
         <div className="mt-8 flex justify-end items-center gap-4">
           {saveMessage && (
-            <p className="text-sm" style={{ 
-              color: saveMessage.includes('Error') ? '#ef4444' : '#22c55e'
-            }}>
+            <p className={`text-sm ${saveMessage.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>
               {saveMessage}
             </p>
           )}
@@ -129,11 +117,7 @@ export default function Settings() {
               }
             }}
             disabled={isSaving || isLoading}
-            className="px-6 py-2 rounded transition-colors disabled:cursor-not-allowed"
-            style={{ 
-              backgroundColor: 'var(--primary)', 
-              color: 'var(--primary-foreground)'
-            }}
+            className="bg-[#EF4444] hover:bg-[#DC2626] disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-2 rounded transition-colors"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
