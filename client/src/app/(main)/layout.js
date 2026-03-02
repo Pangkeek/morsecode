@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Space_Mono } from 'next/font/google';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const spmono = Space_Mono({
   subsets: ['latin'],
@@ -16,7 +17,7 @@ import Navbar from '@/components/Navbar';
 function Mainlayout({ children }) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col items-center bg-[#141720] px-4">
+      <div className="min-h-screen flex flex-col items-center px-4" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
         <Navbar />
         <div className="pt-[100px] md:pt-[140px] w-full">
           {children}
