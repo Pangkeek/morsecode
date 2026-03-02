@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 
 import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const API_URL = "https://morsecode-production.up.railway.app/api";
 
@@ -17,6 +18,7 @@ const spmono = Space_Mono({
 
 export default function Home() {
   const { submitGameResult, settings } = useAuth();
+  const { theme } = useTheme();
   const [mode, setMode] = useState("encode");
 
   const [type, setType] = useState("a-z");
@@ -931,89 +933,99 @@ export default function Home() {
         <>
           {/* Mobile/tablet: 3 dropdowns */}
           <div
-            className={`${spmono.className} md:hidden font-bold w-full max-w-[705px] px-4 py-4 bg-[#1E2332] rounded-xl flex flex-wrap justify-center sm:justify-between items-center gap-3 sm:gap-4 mt-14`}
+            className={`${spmono.className} md:hidden font-bold w-full max-w-[705px] px-4 py-4 rounded-xl flex flex-wrap justify-center sm:justify-between items-center gap-3 sm:gap-4 mt-14 transition-colors duration-300`}
+            style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
           >
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
-              className={`${spmono.className} font-bold bg-[#2A3247] text-white border border-[#3d4556] rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[120px]`}
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[120px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
               aria-label="Mode"
             >
-              <option value="decode" className="bg-[#2A3247] text-white">decode</option>
-              <option value="encode" className="bg-[#2A3247] text-white">encode</option>
+              <option value="decode">decode</option>
+              <option value="encode">encode</option>
             </select>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className={`${spmono.className} font-bold bg-[#2A3247] text-white border border-[#3d4556] rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[120px]`}
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[120px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
               aria-label="Type"
             >
-              <option value="a-z" className="bg-[#2A3247] text-white">a-z</option>
-              <option value="word" className="bg-[#2A3247] text-white">word</option>
+              <option value="a-z">a-z</option>
+              <option value="word">word</option>
             </select>
             <select
               value={length}
               onChange={(e) => setLength(e.target.value)}
-              className={`${spmono.className} font-bold bg-[#2A3247] text-white border border-[#3d4556] rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[100px]`}
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[100px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
               aria-label="Length"
             >
-              <option value="10" className="bg-[#2A3247] text-white">10</option>
-              <option value="15" className="bg-[#2A3247] text-white">15</option>
-              <option value="50" className="bg-[#2A3247] text-white">50</option>
-              <option value="100" className="bg-[#2A3247] text-white">100</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
             </select>
           </div>
           {/* Desktop: original button bar */}
           <div
-            className={`${spmono.className} hidden md:flex font-bold w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 bg-[#1E2332] rounded-xl justify-between items-center gap-1 sm:gap-2 mt-14`}
+            className={`${spmono.className} hidden md:flex font-bold w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 rounded-xl justify-between items-center gap-1 sm:gap-2 mt-14 transition-colors duration-300`}
+          style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
           >
             <button
               onClick={() => setMode("decode")}
-              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300 ${mode === "decode"
-                ? "text-[#EF4444]"
-                : "text-[#9CA3AF] hover:text-white"
-                }`}
+              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300`}
+              style={{ color: mode === "decode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "decode" ? 1 : 0.7 }}
             >
               decode
             </button>
             <button
               onClick={() => setMode("encode")}
-              className={`px-4 py-4 transition-colors duration-300 ${mode === "encode"
-                ? "text-[#EF4444]"
-                : "text-[#9CA3AF] hover:text-white"
-                }`}
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: mode === "encode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "encode" ? 1 : 0.7 }}
             >
               encode
             </button>
-            <p className="text-[#9CA3AF]">|</p>
+            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
             <button
               onClick={() => setType("a-z")}
-              className={`px-4 py-4 transition-colors duration-300 ${type === "a-z"
-                ? "text-[#EF4444]"
-                : "text-[#9CA3AF] hover:text-white"
-                }`}
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: type === "a-z" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "a-z" ? 1 : 0.7 }}
             >
               a-z
             </button>
             <button
               onClick={() => setType("word")}
-              className={`px-4 py-4 transition-colors duration-300 ${type === "word"
-                ? "text-[#EF4444]"
-                : "text-[#9CA3AF] hover:text-white"
-                }`}
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: type === "word" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "word" ? 1 : 0.7 }}
             >
               word
             </button>
-            <p className="text-[#9CA3AF]">|</p>
+            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
             <div className="flex">
               {["10", "15", "50", "100"].map((len) => (
                 <button
                   key={len}
                   onClick={() => setLength(len)}
-                  className={`px-4 py-4 transition-colors duration-300 ${length === len
-                    ? "text-[#EF4444]"
-                    : "text-[#9CA3AF] hover:text-white"
-                    } ${len === "100" ? "pr-10" : ""}`}
+                  className={`px-4 py-4 transition-colors duration-300 ${len === "100" ? "pr-10" : ""}`}
+                  style={{ color: length === len ? 'var(--primary)' : 'var(--foreground)', opacity: length === len ? 1 : 0.7 }}
                 >
                   {len}
                 </button>
@@ -1029,36 +1041,39 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
               <div>
                 <p
-                  className={`${spmono.className} text-[#9CA3AF] font-bold text-[20px]`}
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
                 >
                   wpm
                 </p>
 
-                <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
                   {calculateMetrics()?.wpm || 0}
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
-                  className={`${spmono.className} text-[#9CA3AF] font-bold text-[20px]`}
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
                 >
                   accuracy
                 </p>
 
-                <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
                   {calculateMetrics()?.accuracy || 0}%
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
-                  className={`${spmono.className} text-[#9CA3AF] font-bold text-[20px]`}
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
                 >
                   time
                 </p>
 
-                <p className={`${spmono.className} text-[#EF4444] text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
                   {calculateMetrics()?.timeTaken || 0}s
                 </p>
               </div>
@@ -1067,24 +1082,26 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mt-6">
               <div>
                 <p
-                  className={`${spmono.className} text-[#9CA3AF] font-bold text-[20px]`}
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
                 >
                   mode
                 </p>
 
-                <p className={`${spmono.className} text-[#EF4444] text-[20px]`}>
+                <p className={`${spmono.className} text-[20px]`} style={{ color: 'var(--primary)' }}>
                   {mode} {type}
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
-                  className={`${spmono.className} text-[#9CA3AF] font-bold text-[20px]`}
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
                 >
                   date
                 </p>
 
-                <p className={`${spmono.className} text-[#EF4444] text-[20px]`}>
+                <p className={`${spmono.className} text-[20px]`} style={{ color: 'var(--primary)' }}>
                   {new Date().toLocaleDateString()}
                 </p>
               </div>
@@ -1259,18 +1276,19 @@ export default function Home() {
           />
 
           <p
-            className={`${spmono.className
-              } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${isError
-                ? "text-red-500 animate-shake"
+            className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300`}
+            style={{
+              color: isError
+                ? 'var(--error)'
                 : isSuccess
-                  ? "text-green-500"
-                  : "text-white"
-              }`}
+                  ? 'var(--success)'
+                  : 'var(--foreground)'
+            }}
           >
             {isSuccess
               ? successDisplay
               : charInput || (
-                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
+                <span className="text-lg sm:text-xl md:text-[24px]" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
                   <span className="hidden md:inline">type</span>
                   <span className="md:hidden">tap below to type</span>
                 </span>
