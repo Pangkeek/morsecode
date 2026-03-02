@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
+
+const API_URL = "https://morsecode-production.up.railway.app/api";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
@@ -105,7 +107,7 @@ export default function Home() {
       mode,
       type
     });
-    
+
     if (!firstInputTime || !sessionCompletedTime) {
       console.log('❌ calculateMetrics returning null - missing timing data');
       return null;
@@ -285,6 +287,12 @@ export default function Home() {
   const [isFading, setIsFading] = useState(false);
   const [charInput, setCharInput] = useState("");
 
+  // Backend content state
+  const [fetchedEncodeArray, setFetchedEncodeArray] = useState(null);
+  const [fetchedDecodeArray, setFetchedDecodeArray] = useState(null);
+  const [fetchedWordList, setFetchedWordList] = useState(null);
+  const [contentLoading, setContentLoading] = useState(false);
+
   const containerRef = React.useRef(null);
   const innerWrapRef = React.useRef(null);
 
@@ -318,595 +326,201 @@ export default function Home() {
     setDecodeCurrentLine(lineNumber);
   }, [currentCharIndex, mode]);
 
-  // Generate full 100-length arrays
+  // Morse code mappings (moved up so they can be used for content parsing)
+
+  const morseCodeMap = {
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
+  };
+
+  const reverseMorseMap = Object.fromEntries(
+    Object.entries(morseCodeMap).map(([k, v]) => [v, k])
+  );
+
+  // Helper: shuffle an array (Fisher-Yates)
+  const shuffleArray = (arr) => {
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Helper: generate random letters A-Z
+  const allAZLetters = Object.keys(morseCodeMap); // A-Z
+  const generateRandomLetters = (count) => {
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(allAZLetters[Math.floor(Math.random() * allAZLetters.length)]);
+    }
+    return result;
+  };
+
+  // Word bank for random generation when backend has no content
+  const WORD_BANK = [
+    "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HAD",
+    "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS",
+    "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "WAY", "WHO", "BOY", "DID",
+    "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE", "CAT", "DOG", "RUN",
+    "SUN", "FUN", "BIG", "RED", "BLUE", "GREEN", "CODE", "MORE", "SOME",
+    "COME", "HOME", "LIVE", "LOVE", "WORK", "WORD", "LONG", "TIME", "GOOD",
+    "MUCH", "MUST", "OVER", "SUCH", "TAKE", "THAN", "THEM", "THEN", "THEY",
+    "THIS", "WITH", "FROM", "HAVE", "BEEN", "WERE", "WHAT", "WHEN", "WILL",
+    "YOUR", "ABOUT", "AFTER", "AGAIN", "BEFORE", "EVERY", "FIRST", "OTHER",
+    "RIGHT", "SOUND", "STILL", "THREE", "WATER", "WHERE", "WHICH", "WORLD",
+    "WRITE", "LETTER", "NUMBER", "LITTLE", "PEOPLE", "THINK", "THING", "PLACE",
+  ];
+
+  // Fetch content from backend API when mode/type/length changes
+  const modeMapping = { "encode": 1, "decode": 2 };
+  const symbolMapping = { "a-z": 1, "word": 2 };
+  const difficultyMapping = { "10": 1, "15": 2, "50": 3, "100": 4 };
+
+  useEffect(() => {
+    const numItems = parseInt(length, 10);
+
+    const fetchContent = async () => {
+      const modeId = modeMapping[mode];
+      const symbolId = symbolMapping[type];
+      const difficultyId = difficultyMapping[length];
+
+      if (!modeId || !symbolId || !difficultyId) return;
+
+      setContentLoading(true);
+      try {
+        const res = await fetch(
+          `${API_URL}/contents?modeId=${modeId}&difficultyId=${difficultyId}&symbolId=${symbolId}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0 && data[0].content) {
+            const contentStr = data[0].content.trim();
+
+            if (type === "word") {
+              const words = contentStr.split(/\s+/).filter(Boolean).map(w => w.toUpperCase());
+              setFetchedWordList(shuffleArray(words));
+              setContentLoading(false);
+              return;
+            } else {
+              const letters = contentStr.split(/\s+/).filter(Boolean).map(c => c.toUpperCase());
+              const shuffled = shuffleArray(letters);
+              if (mode === "encode") {
+                setFetchedEncodeArray(shuffled);
+              } else {
+                const morseArr = shuffled.map(l => morseCodeMap[l]).filter(Boolean);
+                setFetchedDecodeArray(morseArr);
+              }
+              setContentLoading(false);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch content from backend:', err);
+      }
+
+      // Backend returned no content — generate random content client-side
+      if (type === "word") {
+        const shuffled = shuffleArray(WORD_BANK);
+        setFetchedWordList(shuffled.slice(0, numItems));
+      } else {
+        const randomLetters = generateRandomLetters(numItems);
+        if (mode === "encode") {
+          setFetchedEncodeArray(randomLetters);
+        } else {
+          const morseArr = randomLetters.map(l => morseCodeMap[l]).filter(Boolean);
+          setFetchedDecodeArray(morseArr);
+        }
+      }
+      setContentLoading(false);
+    };
+
+    // Reset fetched content to null when settings change
+    setFetchedEncodeArray(null);
+    setFetchedDecodeArray(null);
+    setFetchedWordList(null);
+
+    fetchContent();
+  }, [mode, type, length]);
+
+  // Content is null until fetched/generated\r\n\r\n  const targetLettersEncode = fetchedEncodeArray;\r\n\r\n  const targetLettersDecode = fetchedDecodeArray;\r\n\r\n  const targetLetters =\r\n    mode === \"encode\" ? targetLettersEncode : targetLettersDecode;\r\n\r\n  // morseCodeMap is defined above (before useEffect)\r\n\r\n  // Word mode: null until fetched/generated\r\n\r\n  const targetWordsEncode = fetchedWordList || [];\r\n\r\n  const targetWordsDecode = targetWordsEncode.map((word) =>\r\n    word\r\n      .split(\"\")\r\n      .map((c) => morseCodeMap[c])\r\n      .filter(Boolean),\r\n  );
 
   const fullEncodeArray = [
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
+    "loading...",
   ];
 
   const fullDecodeArray = [
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
+    "loading...",
   ];
 
-  // Use selected length from menu
+  // Use fetched content if available, otherwise use hardcoded fallback
 
-  const targetLettersEncode = fullEncodeArray.slice(0, parseInt(length));
+  const targetLettersEncode = fetchedEncodeArray || fullEncodeArray.slice(0, parseInt(length));
 
-  const targetLettersDecode = fullDecodeArray.slice(0, parseInt(length));
+  const targetLettersDecode = fetchedDecodeArray || fullDecodeArray.slice(0, parseInt(length));
 
   const targetLetters =
     mode === "encode" ? targetLettersEncode : targetLettersDecode;
 
-  // Morse code mappings
+  // morseCodeMap is defined above (before useEffect)
 
-  const morseCodeMap = {
-    A: ".-",
+  // Word mode: use fetched word list or fallback to hardcoded list
 
-    B: "-...",
-
-    C: "-.-.",
-
-    D: "-..",
-
-    E: ".",
-
-    F: "..-.",
-
-    G: "--.",
-
-    H: "....",
-
-    I: "..",
-
-    J: ".---",
-
-    K: "-.-",
-
-    L: ".-..",
-
-    M: "--",
-
-    N: "-.",
-
-    O: "---",
-
-    P: ".--.",
-
-    Q: "--.-",
-
-    R: ".-.",
-
-    S: "...",
-
-    T: "-",
-
-    U: "..-",
-
-    V: "...-",
-
-    W: ".--",
-
-    X: "-..-",
-
-    Y: "-.--",
-
-    Z: "--..",
-  };
-
-  // Word mode: list of words (A–Z only). Length = number of words (10, 15, 50, 100).
-
-  const WORD_LIST = [
-    "THE",
-    "AND",
-    "FOR",
-    "ARE",
-    "BUT",
-    "NOT",
-    "YOU",
-    "ALL",
-    "CAN",
-    "HAD",
-
-    "HER",
-    "WAS",
-    "ONE",
-    "OUR",
-    "OUT",
-    "DAY",
-    "GET",
-    "HAS",
-    "HIM",
-    "HIS",
-
-    "HOW",
-    "MAN",
-    "NEW",
-    "NOW",
-    "OLD",
-    "SEE",
-    "WAY",
-    "WHO",
-    "BOY",
-    "DID",
-
-    "ITS",
-    "LET",
-    "PUT",
-    "SAY",
-    "SHE",
-    "TOO",
-    "USE",
-    "CAT",
-    "DOG",
-    "RUN",
-
-    "SUN",
-    "FUN",
-    "BIG",
-    "RED",
-    "BLUE",
-    "GREEN",
-    "CODE",
-    "MORE",
-    "SOME",
-
-    "COME",
-    "HOME",
-    "LIVE",
-    "LOVE",
-    "WORK",
-    "WORD",
-    "LONG",
-    "TIME",
-    "GOOD",
-
-    "MUCH",
-    "MUST",
-    "OVER",
-    "SUCH",
-    "TAKE",
-    "THAN",
-    "THEM",
-    "THEN",
-    "THEY",
-
-    "THIS",
-    "WITH",
-    "FROM",
-    "HAVE",
-    "BEEN",
-    "WERE",
-    "WHAT",
-    "WHEN",
-    "WILL",
-
-    "YOUR",
-    "ABOUT",
-    "AFTER",
-    "AGAIN",
-    "BEFORE",
-    "EVERY",
-    "FIRST",
-    "OTHER",
-
-    "RIGHT",
-    "SOUND",
-    "STILL",
-    "THREE",
-    "WATER",
-    "WHERE",
-    "WHICH",
-    "WORLD",
-
-    "WRITE",
-    "LETTER",
-    "NUMBER",
-    "LITTLE",
-    "PEOPLE",
-    "THINK",
-    "THING",
-    "PLACE",
+  const FALLBACK_WORD_LIST = [
+    "loading...",
+    // "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HAD",
+    // "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS",
+    // "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "WAY", "WHO", "BOY", "DID",
+    // "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE", "CAT", "DOG", "RUN",
+    // "SUN", "FUN", "BIG", "RED", "BLUE", "GREEN", "CODE", "MORE", "SOME",
+    // "COME", "HOME", "LIVE", "LOVE", "WORK", "WORD", "LONG", "TIME", "GOOD",
+    // "MUCH", "MUST", "OVER", "SUCH", "TAKE", "THAN", "THEM", "THEN", "THEY",
+    // "THIS", "WITH", "FROM", "HAVE", "BEEN", "WERE", "WHAT", "WHEN", "WILL",
+    // "YOUR", "ABOUT", "AFTER", "AGAIN", "BEFORE", "EVERY", "FIRST", "OTHER",
+    // "RIGHT", "SOUND", "STILL", "THREE", "WATER", "WHERE", "WHICH", "WORLD",
+    // "WRITE", "LETTER", "NUMBER", "LITTLE", "PEOPLE", "THINK", "THING", "PLACE",
   ];
 
   const numWords = parseInt(length, 10);
 
-  const targetWordsEncode = WORD_LIST.slice(
-    0,
-    Math.min(numWords, WORD_LIST.length),
-  );
+  const WORD_LIST = fetchedWordList || FALLBACK_WORD_LIST.slice(0, Math.min(numWords, FALLBACK_WORD_LIST.length));
 
-  const targetWordsDecode = targetWordsEncode.map((word) =>
-    word
+  const targetWordsEncode = WORD_LIST;
+
+  const targetWordsDecode = targetWordsEncode.map((word) => {
+    if (word === "loading...") {
+      return ["loading..."];
+    }
+    return word
       .split("")
       .map((c) => morseCodeMap[c])
-      .filter(Boolean),
-  );
+      .filter(Boolean);
+  });
 
   const encodeCurrentWord = targetWordsEncode[encodeWordIndex] ?? "";
 
@@ -915,25 +529,25 @@ export default function Home() {
 
   const decodeCurrentWordMorse = targetWordsDecode[decodeWordIndex] ?? [];
 
-const decodeCurrentMorse =
-  decodeCurrentWordMorse[decodeLetterInWordIndex] ?? null;
+  const decodeCurrentMorse =
+    decodeCurrentWordMorse[decodeLetterInWordIndex] ?? null;
 
-React.useEffect(() => {
-  const handleKeyDown = (e) => {
-    if (e.code === "Space" && !isSpacebarPressed) {
-      e.preventDefault();
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === "Space" && !isSpacebarPressed) {
+        e.preventDefault();
 
-      setIsSpacebarPressed(true);
+        setIsSpacebarPressed(true);
 
-      setSpacebarStartTime(Date.now());
+        setSpacebarStartTime(Date.now());
 
-      // Play continuous morse sound in encode mode
-      if (mode === "encode") {
-        startMorseSound();
-      }
+        // Play continuous morse sound in encode mode
+        if (mode === "encode") {
+          startMorseSound();
+        }
 
-      // Record first input time and start session tracking
-      recordFirstInput();
+        // Record first input time and start session tracking
+        recordFirstInput();
 
         if (inputTimeout) {
           clearTimeout(inputTimeout);
@@ -984,7 +598,7 @@ React.useEffect(() => {
         recordFirstInput();
 
         setCharInput(newCharInput);
-        
+
         // Record first input time and start session tracking
         recordFirstInput();
 
