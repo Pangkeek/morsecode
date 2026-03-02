@@ -8,8 +8,8 @@ const spmono = Space_Mono({
 
 function Authlayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#141720] px-4">
-        <h1 className={`${spmono.className} font-bold text-white text-3xl sm:text-4xl md:text-[48px] mb-[30px]`}>morse<span className='text-[#EF4444]'>code</span></h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+        <h1 className={`${spmono.className} font-bold text-foreground text-3xl sm:text-4xl md:text-[48px] mb-[30px]`}>morse<span className='text-primary'>code</span></h1>
         {children}
     </div>
   )

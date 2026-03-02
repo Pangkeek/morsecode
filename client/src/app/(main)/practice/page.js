@@ -174,7 +174,7 @@ export default function Practice() {
                   : isError && isCurrent
                     ? 'text-red-500 animate-shake'
                     : isCompleted 
-                      ? 'text-white' 
+                      ? 'text-foreground' 
                       : 'text-[#5a5e61]'
               }`}>
                 {letter}
@@ -186,7 +186,7 @@ export default function Practice() {
                   : isError && isCurrent
                     ? 'text-red-500'
                     : isCompleted 
-                      ? 'text-[#9CA3AF]' 
+                      ? 'text-foreground/70' 
                       : 'text-[#5a5e61]'
               }`}>
                 {morseCodeMap[letter]}
@@ -208,8 +208,8 @@ export default function Practice() {
 
       {/* Current input display */}
       <p className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 mt-5 ${
-        isError ? 'text-red-500 animate-shake' : isSuccess ? 'text-green-500' : 'text-white'
-      }`}>{isSuccess ? morseCodeMap[currentLetter] : (morseInput || <span className="text-[24px] text-[#9CA3AF]">press spacebar</span>)}</p>
+        isError ? 'text-red-500 animate-shake' : isSuccess ? 'text-green-500' : 'text-foreground'
+      }`}>{isSuccess ? morseCodeMap[currentLetter] : (morseInput || <span className="text-[24px] text-foreground/70">press spacebar</span>)}</p>
 
       {/* Instructions */}
       <div className="mt-15">

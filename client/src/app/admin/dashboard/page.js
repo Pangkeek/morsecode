@@ -102,19 +102,19 @@ export default function AdminDashboard() {
     };
 
     if (authLoading || (user && user.role !== 'ADMIN')) {
-        return <div className="min-h-screen bg-[#0E121E] flex justify-center items-center text-white">Loading...</div>;
+        return <div className="min-h-screen bg-background flex justify-center items-center text-foreground">Loading...</div>;
     }
 
     return (
-        <div className="min-h-screen bg-[#0E121E]">
+        <div className="min-h-screen bg-background">
             <Navbar />
             <div className="pt-[140px] px-4 pb-10 flex justify-center">
                 <div className="w-full max-w-6xl">
                     <div className="flex justify-between items-center mb-10">
-                        <h1 className={`${spmono.className} text-3xl md:text-5xl font-bold text-white tracking-wider flex items-center gap-4`}>
-                            <span className="text-[#EF4444]">//</span> ADMIN DASHBOARD
+                        <h1 className={`${spmono.className} text-3xl md:text-5xl font-bold text-foreground tracking-wider flex items-center gap-4`}>
+                            <span className="text-primary">//</span> ADMIN DASHBOARD
                         </h1>
-                        <div className="bg-[#EF4444] text-white px-4 py-2 rounded-full font-bold text-sm">
+                        <div className="bg-primary text-foreground px-4 py-2 rounded-full font-bold text-sm">
                             ACCESS GRANTED
                         </div>
                     </div>
@@ -128,27 +128,27 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Metric Cards Row */}
                         {loadingMetrics ? (
-                            <div className="md:col-span-2 text-white text-center py-10">Loading metrics...</div>
+                            <div className="md:col-span-2 text-foreground text-center py-10">Loading metrics...</div>
                         ) : metrics && (
                             <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="bg-[#1E2332] p-6 rounded-xl border border-[#2A3247] flex flex-col items-center justify-center">
+                                <div className="bg-card p-6 rounded-xl border border-border flex flex-col items-center justify-center">
                                     <div className="text-gray-400 font-bold mb-2">TOTAL USERS</div>
-                                    <div className="text-4xl text-white font-bold">{metrics.totalUsers}</div>
+                                    <div className="text-4xl text-foreground font-bold">{metrics.totalUsers}</div>
                                 </div>
-                                <div className="bg-[#1E2332] p-6 rounded-xl border border-[#2A3247] flex flex-col items-center justify-center">
+                                <div className="bg-card p-6 rounded-xl border border-border flex flex-col items-center justify-center">
                                     <div className="text-gray-400 font-bold mb-2">TOTAL PLAY SESSIONS</div>
-                                    <div className="text-4xl text-white font-bold">{metrics.totalPlaySessions}</div>
+                                    <div className="text-4xl text-foreground font-bold">{metrics.totalPlaySessions}</div>
                                 </div>
-                                <div className="bg-[#1E2332] p-6 rounded-xl border border-[#2A3247] flex flex-col items-center justify-center">
+                                <div className="bg-card p-6 rounded-xl border border-border flex flex-col items-center justify-center">
                                     <div className="text-gray-400 font-bold mb-2">GLOBAL AVG WPM</div>
-                                    <div className="text-4xl text-[#EF4444] font-bold">{metrics.globalAvgWpm}</div>
+                                    <div className="text-4xl text-primary font-bold">{metrics.globalAvgWpm}</div>
                                 </div>
                             </div>
                         )}
 
                         {/* Content Management Section */}
-                        <div className="md:col-span-2 bg-[#1E2332] rounded-xl border border-[#2A3247] overflow-hidden">
-                            <div className="bg-[#252B3D] p-4 font-bold text-white border-b border-[#2A3247] flex justify-between items-center">
+                        <div className="md:col-span-2 bg-card rounded-xl border border-border overflow-hidden">
+                            <div className="bg-card p-4 font-bold text-foreground border-b border-border flex justify-between items-center">
                                 <span>📦 GAME CONTENT MANAGEMENT (HUMAN READABLE)</span>
                                 <span className="text-xs text-gray-400">Manage what users see in each mode</span>
                             </div>
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
                                 ) : (
                                     <table className="w-full text-left border-collapse">
                                         <thead>
-                                            <tr className="bg-[#161B28] text-gray-400 text-xs uppercase tracking-wider">
+                                            <tr className="bg-card text-gray-400 text-xs uppercase tracking-wider">
                                                 <th className="px-6 py-4">Mode</th>
                                                 <th className="px-6 py-4">Symbol</th>
                                                 <th className="px-6 py-4">Difficulty</th>
@@ -166,9 +166,9 @@ export default function AdminDashboard() {
                                                 <th className="px-6 py-4">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="text-white text-sm">
+                                        <tbody className="text-foreground text-sm">
                                             {contents.map((item) => (
-                                                <tr key={item.id} className="border-b border-[#2A3247] hover:bg-[#252B3D] transition-colors">
+                                                <tr key={item.id} className="border-b border-border hover:bg-card transition-colors">
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-1 rounded text-xs font-bold ${item.mode.name === 'encode' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
                                                             {item.mode.name.toUpperCase()}
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
                                                     <td className="px-6 py-4">
                                                         {editingId === item.id ? (
                                                             <textarea
-                                                                className="w-full bg-[#0E121E] border border-[#EF4444] rounded p-2 text-white focus:outline-none h-20"
+                                                                className="w-full bg-background border border-primary rounded p-2 text-foreground focus:outline-none h-20"
                                                                 value={editValue}
                                                                 onChange={(e) => setEditValue(e.target.value)}
                                                             />
@@ -198,13 +198,13 @@ export default function AdminDashboard() {
                                                                 <button
                                                                     disabled={updating}
                                                                     onClick={() => handleUpdateContent(item.id)}
-                                                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs"
+                                                                    className="bg-green-600 hover:bg-green-700 text-foreground px-3 py-1 rounded text-xs"
                                                                 >
                                                                     {updating ? '...' : 'SAVE'}
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setEditingId(null)}
-                                                                    className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs"
+                                                                    className="bg-gray-600 hover:bg-gray-700 text-foreground px-3 py-1 rounded text-xs"
                                                                 >
                                                                     X
                                                                 </button>
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                                                                     setEditingId(item.id);
                                                                     setEditValue(item.content);
                                                                 }}
-                                                                className="text-[#EF4444] hover:underline text-xs font-bold"
+                                                                className="text-primary hover:underline text-xs font-bold"
                                                             >
                                                                 EDIT
                                                             </button>
@@ -231,8 +231,8 @@ export default function AdminDashboard() {
 
                         {/* Most Failed Characters */}
                         {metrics && (
-                            <div className="md:col-span-2 bg-[#1E2332] rounded-xl border border-[#2A3247] overflow-hidden">
-                                <div className="bg-[#252B3D] p-4 font-bold text-white border-b border-[#2A3247]">
+                            <div className="md:col-span-2 bg-card rounded-xl border border-border overflow-hidden">
+                                <div className="bg-card p-4 font-bold text-foreground border-b border-border">
                                     🔥 PLATFORM'S MOST FAILED CHARACTERS
                                 </div>
                                 <div className="p-6">
@@ -241,8 +241,8 @@ export default function AdminDashboard() {
                                             <div className="text-gray-400 w-full text-center py-4">No mistake data points gathered yet.</div>
                                         ) : (
                                             metrics.mostFailedCharacters.map((mistake, index) => (
-                                                <div key={index} className="flex-1 min-w-[120px] bg-[#2A3247] p-4 rounded-lg flex flex-col items-center border border-[#3d4556]">
-                                                    <div className={`text-4xl font-bold mb-2 ${index === 0 ? 'text-[#ef4444]' : 'text-white'}`}>
+                                                <div key={index} className="flex-1 min-w-[120px] bg-card p-4 rounded-lg flex flex-col items-center border border-border">
+                                                    <div className={`text-4xl font-bold mb-2 ${index === 0 ? 'text-primary' : 'text-foreground'}`}>
                                                         {mistake.character.toUpperCase()}
                                                     </div>
                                                     <div className="text-sm text-gray-400">

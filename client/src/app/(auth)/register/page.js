@@ -53,7 +53,7 @@ function RegisterPage() {
           className="
         max-w-[705px]
         min-h-[650px]
-        bg-[#1E2332]
+        bg-card
         rounded-xl
         flex
         flex-col
@@ -61,44 +61,44 @@ function RegisterPage() {
         justify-center
         px-4 sm:px-0"
         >
-          <p className={`${spmono.className} font-bold text-white text-[32px] mt-10`}>
+          <p className={`${spmono.className} font-bold text-foreground text-[32px] mt-10`}>
             register
           </p>
           <div className="flex flex-col w-full sm:w-auto">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-7.5`}>email</label>
+            <label className={`${spmono.className} font-bold text-foreground/70 text-[16px] mt-7.5`}>email</label>
             <input
               type="email"
-              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              className={`w-full sm:w-[540px] h-20 bg-card rounded-2xl mt-2 ${spmono.className} font-bold text-foreground text-[16px] pl-6`}
               placeholder="Enter email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full sm:w-auto">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>username</label>
+            <label className={`${spmono.className} font-bold text-foreground/70 text-[16px] mt-5`}>username</label>
             <input
               type="text"
-              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              className={`w-full sm:w-[540px] h-20 bg-card rounded-2xl mt-2 ${spmono.className} font-bold text-foreground text-[16px] pl-6`}
               placeholder="Enter username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full sm:w-auto">
-            <label className={`${spmono.className} font-bold text-[#9CA3AF] text-[16px] mt-5`}>password</label>
+            <label className={`${spmono.className} font-bold text-foreground/70 text-[16px] mt-5`}>password</label>
             <input
               type="password"
-              className={`w-full sm:w-[540px] h-20 bg-[#2A3247] rounded-2xl mt-2 ${spmono.className} font-bold text-white text-[16px] pl-6`}
+              className={`w-full sm:w-[540px] h-20 bg-card rounded-2xl mt-2 ${spmono.className} font-bold text-foreground text-[16px] pl-6`}
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-white text-[32px] w-full sm:w-[280px] h-20 bg-[#EF4444] rounded-xl mt-[50px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          <button type="submit" disabled={loading} className={`${spmono.className} font-bold text-foreground text-[32px] w-full sm:w-[280px] h-20 bg-primary rounded-xl mt-[50px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {loading ? 'registering...' : 'register'}
           </button>
-          <p className={`${spmono.className} font-bold text-white text-[14px] mt-12.5`}>Already have an account?</p>
-          <a href="/login" className={`${spmono.className} font-bold text-white text-[14px] underline mb-10`}>Log in</a>
+          <p className={`${spmono.className} font-bold text-foreground text-[14px] mt-12.5`}>Already have an account?</p>
+          <a href="/login" className={`${spmono.className} font-bold text-foreground text-[14px] underline mb-10`}>Log in</a>
         </div>
       </form>
     </div>

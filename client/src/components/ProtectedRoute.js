@@ -16,16 +16,16 @@ export function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#141720] flex items-center justify-center">
-        <div className="text-white text-base sm:text-xl">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground text-base sm:text-xl">Loading...</div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#141720] flex items-center justify-center">
-        <div className="text-white text-base sm:text-xl">Redirecting to login...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground text-base sm:text-xl">Redirecting to login...</div>
       </div>
     );
   }
