@@ -403,65 +403,64 @@ export default function Home() {
   const symbolMapping = { "a-z": 1, "word": 2 };
   const difficultyMapping = { "10": 1, "15": 2, "50": 3, "100": 4 };
 
-  useEffect(() => {
+  const fetchContent = async () => {
     const numItems = parseInt(length, 10);
+    const modeId = modeMapping[mode];
+    const symbolId = symbolMapping[type];
+    const difficultyId = difficultyMapping[length];
 
-    const fetchContent = async () => {
-      const modeId = modeMapping[mode];
-      const symbolId = symbolMapping[type];
-      const difficultyId = difficultyMapping[length];
+    if (!modeId || !symbolId || !difficultyId) return;
 
-      if (!modeId || !symbolId || !difficultyId) return;
+    setContentLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/contents?modeId=${modeId}&difficultyId=${difficultyId}&symbolId=${symbolId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0 && data[0].content) {
+          const contentStr = data[0].content.trim();
 
-      setContentLoading(true);
-      try {
-        const res = await fetch(
-          `${API_URL}/contents?modeId=${modeId}&difficultyId=${difficultyId}&symbolId=${symbolId}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0 && data[0].content) {
-            const contentStr = data[0].content.trim();
-
-            if (type === "word") {
-              const words = contentStr.split(/\s+/).filter(Boolean).map(w => w.toUpperCase());
-              setFetchedWordList(shuffleArray(words));
-              setContentLoading(false);
-              return;
+          if (type === "word") {
+            const words = contentStr.split(/\s+/).filter(Boolean).map(w => w.toUpperCase());
+            setFetchedWordList(shuffleArray(words));
+            setContentLoading(false);
+            return;
+          } else {
+            const letters = contentStr.split(/\s+/).filter(Boolean).map(c => c.toUpperCase());
+            const shuffled = shuffleArray(letters);
+            if (mode === "encode") {
+              setFetchedEncodeArray(shuffled);
             } else {
-              const letters = contentStr.split(/\s+/).filter(Boolean).map(c => c.toUpperCase());
-              const shuffled = shuffleArray(letters);
-              if (mode === "encode") {
-                setFetchedEncodeArray(shuffled);
-              } else {
-                const morseArr = shuffled.map(l => morseCodeMap[l]).filter(Boolean);
-                setFetchedDecodeArray(morseArr);
-              }
-              setContentLoading(false);
-              return;
+              const morseArr = shuffled.map(l => morseCodeMap[l]).filter(Boolean);
+              setFetchedDecodeArray(morseArr);
             }
+            setContentLoading(false);
+            return;
           }
         }
-      } catch (err) {
-        console.error('Failed to fetch content from backend:', err);
       }
+    } catch (err) {
+      console.error('Failed to fetch content from backend:', err);
+    }
 
-      // Backend returned no content — generate random content client-side
-      if (type === "word") {
-        const shuffled = shuffleArray(WORD_BANK);
-        setFetchedWordList(shuffled.slice(0, numItems));
+    // Backend returned no content — generate random content client-side
+    if (type === "word") {
+      const shuffled = shuffleArray(WORD_BANK);
+      setFetchedWordList(shuffled.slice(0, numItems));
+    } else {
+      const randomLetters = generateRandomLetters(numItems);
+      if (mode === "encode") {
+        setFetchedEncodeArray(randomLetters);
       } else {
-        const randomLetters = generateRandomLetters(numItems);
-        if (mode === "encode") {
-          setFetchedEncodeArray(randomLetters);
-        } else {
-          const morseArr = randomLetters.map(l => morseCodeMap[l]).filter(Boolean);
-          setFetchedDecodeArray(morseArr);
-        }
+        const morseArr = randomLetters.map(l => morseCodeMap[l]).filter(Boolean);
+        setFetchedDecodeArray(morseArr);
       }
-      setContentLoading(false);
-    };
+    }
+    setContentLoading(false);
+  };
 
+  useEffect(() => {
     // Reset fetched content to null when settings change
     setFetchedEncodeArray(null);
     setFetchedDecodeArray(null);
@@ -469,8 +468,6 @@ export default function Home() {
 
     fetchContent();
   }, [mode, type, length]);
-
-  // Content is null until fetched/generated\r\n\r\n  const targetLettersEncode = fetchedEncodeArray;\r\n\r\n  const targetLettersDecode = fetchedDecodeArray;\r\n\r\n  const targetLetters =\r\n    mode === \"encode\" ? targetLettersEncode : targetLettersDecode;\r\n\r\n  // morseCodeMap is defined above (before useEffect)\r\n\r\n  // Word mode: null until fetched/generated\r\n\r\n  const targetWordsEncode = fetchedWordList || [];\r\n\r\n  const targetWordsDecode = targetWordsEncode.map((word) =>\r\n    word\r\n      .split(\"\")\r\n      .map((c) => morseCodeMap[c])\r\n      .filter(Boolean),\r\n  );
 
   const fullEncodeArray = [
     "loading...",
@@ -1144,6 +1141,9 @@ export default function Home() {
 
               setIsFading(false);
 
+              // Fetch new random content
+              fetchContent();
+
               // Reset session tracking
               startSession();
 
@@ -1266,6 +1266,9 @@ export default function Home() {
               setIsCompleted(false);
 
               setIsFading(false);
+
+              // Fetch new random content
+              fetchContent();
 
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
@@ -1437,6 +1440,9 @@ export default function Home() {
 
               setIsCompleted(false);
 
+              // Fetch new random content
+              fetchContent();
+
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
 
@@ -1558,6 +1564,9 @@ export default function Home() {
               setSuccessDisplay("");
 
               setIsCompleted(false);
+
+              // Fetch new random content
+              fetchContent();
 
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
