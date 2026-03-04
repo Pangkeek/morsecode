@@ -1191,13 +1191,8 @@ export default function Home() {
                         <p
                           key={`dw-${wIdx}-${lIdx}`}
                           className={`${spmono.className
-                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
-                              ? "text-white"
-                              : isCurrent && isError
-                                ? "text-red-500 animate-shake"
-                                : "text-[#5a5e61]"
-                            }`}
-                          style={{ margin: "0 0.25rem" }}
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isCurrent && isError ? "text-red-500 animate-shake" : ""}`}
+                          style={{ margin: "0 0.25rem", color: isCurrent && isError ? undefined : isPast ? (theme === 'theme-light' ? '#000000' : 'white') : (theme === 'theme-light' ? '#9CA3AF' : '#5a5e61') }}
                         >
                           {morse}
                         </p>
@@ -1216,13 +1211,8 @@ export default function Home() {
                     <p
                       key={index}
                       className={`${spmono.className
-                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
-                          ? "text-white"
-                          : isCurrent && isError
-                            ? "text-red-500 animate-shake"
-                            : "text-[#5a5e61]"
-                        }`}
-                      style={{ margin: "0 1rem" }}
+                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isCurrent && isError ? "text-red-500 animate-shake" : ""}`}
+                      style={{ margin: "0 1rem", color: isCurrent && isError ? undefined : isPast ? (theme === 'theme-light' ? '#000000' : 'white') : (theme === 'theme-light' ? '#9CA3AF' : '#5a5e61') }}
                     >
                       {letter}
                     </p>
@@ -1485,13 +1475,8 @@ export default function Home() {
                         <p
                           key={`ew-${wIdx}-${lIdx}`}
                           className={`${spmono.className
-                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
-                              ? "text-white"
-                              : isCurrent && isError
-                                ? "text-red-500 animate-shake"
-                                : "text-[#5a5e61]"
-                            }`}
-                          style={{ margin: "0 0.25rem" }}
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isCurrent && isError ? "text-red-500 animate-shake" : ""}`}
+                          style={{ margin: "0 0.25rem", color: isCurrent && isError ? undefined : isPast ? (theme === 'theme-light' ? '#000000' : 'white') : (theme === 'theme-light' ? '#9CA3AF' : '#5a5e61') }}
                         >
                           {letter}
                         </p>
@@ -1510,13 +1495,8 @@ export default function Home() {
                     <p
                       key={index}
                       className={`${spmono.className
-                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
-                          ? "text-white"
-                          : isCurrent && isError
-                            ? "text-red-500 animate-shake"
-                            : "text-[#5a5e61]"
-                        }`}
-                      style={{ margin: "0 1rem" }}
+                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isCurrent && isError ? "text-red-500 animate-shake" : ""}`}
+                      style={{ margin: "0 1rem", color: isCurrent && isError ? undefined : isPast ? (theme === 'theme-light' ? '#000000' : 'white') : (theme === 'theme-light' ? '#9CA3AF' : '#5a5e61') }}
                     >
                       {letter}
                     </p>
@@ -1582,8 +1562,9 @@ export default function Home() {
                 ? "text-red-500 animate-shake"
                 : isSuccess
                   ? "text-green-500"
-                  : "text-white"
+                  : ""
               }`}
+            style={(!isError && !isSuccess) ? { color: theme === 'theme-light' ? 'var(--foreground)' : 'white' } : {}}
           >
             {isSuccess
               ? successDisplay

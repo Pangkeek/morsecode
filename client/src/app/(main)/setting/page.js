@@ -14,10 +14,9 @@ const spmono = Space_Mono({
 export default function Settings() {
   const { user, saveSettings, settings: userSettings } = useAuth();
   const { theme, updateTheme } = useTheme();
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState(null);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (userSettings) {
@@ -87,14 +86,27 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">Sound Volume</h3>
-                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Adjust audio volume ({settings.soundVolume}%)</p>
+                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.7 }}>Adjust audio volume ({settings?.soundVolume || 0}%)</p>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="100"
-                  value={settings.soundVolume}
-                  onChange={(e) => setSettings({ ...settings, soundVolume: parseInt(e.target.value) })}
+                  value={settings?.soundVolume || 0}
+                  onChange={async (e) => {
+                    const newVolume = parseInt(e.target.value);
+                    const newSettings = { ...settings, soundVolume: newVolume };
+                    setSettings(newSettings);
+                    
+                    try {
+                      await saveSettings(newSettings);
+                      setSaveMessage("Settings saved successfully!");
+                      setTimeout(() => setSaveMessage(""), 3000);
+                    } catch (error) {
+                      setSaveMessage(`Error: ${error.message}`);
+                      setTimeout(() => setSaveMessage(""), 5000);
+                    }
+                  }}
                   className="w-32"
                   style={{ accentColor: 'var(--primary)' }}
                 />
@@ -103,41 +115,16 @@ export default function Settings() {
           )}
         </div>
 
-        {/* Save Button */}
-        <div className="mt-8 flex justify-end items-center gap-4">
-          {saveMessage && (
+        {/* Save Message */}
+        {saveMessage && (
+          <div className="mt-6 flex justify-end">
             <p className="text-sm" style={{ 
-              color: saveMessage.includes('Error') ? '#ef4444' : '#22c55e'
+              color: (saveMessage && saveMessage.includes && saveMessage.includes('Error')) ? '#ef4444' : '#22c55e'
             }}>
               {saveMessage}
             </p>
-          )}
-          <button
-            onClick={async () => {
-              setIsSaving(true);
-              setSaveMessage("");
-
-              try {
-                await saveSettings(settings);
-                setSaveMessage("Settings saved successfully!");
-                setTimeout(() => setSaveMessage(""), 3000);
-              } catch (error) {
-                setSaveMessage(`Error: ${error.message}`);
-                setTimeout(() => setSaveMessage(""), 5000);
-              } finally {
-                setIsSaving(false);
-              }
-            }}
-            disabled={isSaving || isLoading}
-            className="px-6 py-2 rounded transition-colors disabled:cursor-not-allowed"
-            style={{ 
-              backgroundColor: 'var(--primary)', 
-              color: 'var(--primary-foreground)'
-            }}
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
