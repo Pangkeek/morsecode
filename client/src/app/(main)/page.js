@@ -2,10 +2,13 @@
 
 import Image from "next/image";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+
+const API_URL = "https://morsecode-production.up.railway.app/api";
 
 const spmono = Space_Mono({
   subsets: ["latin"],
@@ -14,7 +17,8 @@ const spmono = Space_Mono({
 });
 
 export default function Home() {
-  const { submitGameResult } = useAuth();
+  const { submitGameResult, settings } = useAuth();
+  const { theme } = useTheme();
   const [mode, setMode] = useState("encode");
 
   const [type, setType] = useState("a-z");
@@ -216,657 +220,306 @@ export default function Home() {
     }
 
     setCurrentLine(0);
-
     setDecodeCurrentLine(0);
   }, [mode, previousMode, type, previousType]);
 
   const [isError, setIsError] = useState(false);
-
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [successDisplay, setSuccessDisplay] = useState("");
 
   const [inputTimeout, setInputTimeout] = useState(null);
 
+  // Audio context for continuous morse code sounds
+  // Use refs so AudioContext and oscillator are created once and never recreated on re-render.
+  // Creating `new AudioContext()` on every render hits the browser's ~6 context limit
+  // and causes sound to stop after a few characters.
+  const audioContextRef = React.useRef(null);
+  const currentOscillatorRef = React.useRef(null);
+
+  const getAudioContext = () => {
+    if (typeof window === 'undefined') return null;
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContextRef.current;
+  };
+
+  const stopMorseSound = () => {
+    if (currentOscillatorRef.current) {
+      currentOscillatorRef.current.stop();
+      currentOscillatorRef.current.disconnect();
+      currentOscillatorRef.current = null;
+    }
+  };
+
+  const startMorseSound = (frequency = 600) => {
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
+
+    // Resume context if suspended due to browser autoplay policy
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    // Stop any existing sound
+    if (currentOscillatorRef.current) {
+      currentOscillatorRef.current.stop();
+      currentOscillatorRef.current.disconnect();
+      currentOscillatorRef.current = null;
+    }
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime((settings?.soundVolume || 50) / 100 * 0.3, audioContext.currentTime);
+
+    oscillator.start();
+    currentOscillatorRef.current = oscillator;
+  };
+
   const [isCompleted, setIsCompleted] = useState(false);
 
   const [isFading, setIsFading] = useState(false);
-
   const [charInput, setCharInput] = useState("");
 
-  // State for sliding window - track which line is currently visible
-
-  const [currentLine, setCurrentLine] = useState(0);
-
-  const [decodeCurrentLine, setDecodeCurrentLine] = useState(0);
+  // Backend content state
+  const [fetchedEncodeArray, setFetchedEncodeArray] = useState(null);
+  const [fetchedDecodeArray, setFetchedDecodeArray] = useState(null);
+  const [fetchedWordList, setFetchedWordList] = useState(null);
+  const [contentLoading, setContentLoading] = useState(false);
 
   const containerRef = React.useRef(null);
+  const innerWrapRef = React.useRef(null);
 
-  // Effect to update current line based on progress - wait until line is fully completed
+  const mobileInputRef = React.useRef(null);
 
+  // State for 2-line sliding window
+  const [currentLine, setCurrentLine] = useState(0);
+  const [decodeCurrentLine, setDecodeCurrentLine] = useState(0);
+
+  // Effect to update current line based on actual DOM positions
   React.useEffect(() => {
-    // Encode mode: Show 20 characters at a time
+    const measureCurrentLine = () => {
+      if (!innerWrapRef.current) return 0;
+      const children = innerWrapRef.current.children;
+      if (!children || children.length === 0) return 0;
 
-    const charsPerLine = 20;
+      const firstChild = children[0];
+      const lineHeight = firstChild.offsetHeight;
+      if (lineHeight === 0) return 0;
 
-    const completedLines = Math.floor(currentCharIndex / charsPerLine);
+      // For a-z mode: each child is a letter <p>, index matches currentCharIndex
+      // For word mode: children include letters and gap spans, but we only need line of current char
+      const targetChild = children[currentCharIndex] || children[children.length - 1];
+      const relativeTop = targetChild.offsetTop - firstChild.offsetTop;
+      const lineNumber = Math.round(relativeTop / lineHeight);
+      return lineNumber;
+    };
 
-    setCurrentLine(completedLines);
+    const lineNumber = measureCurrentLine();
+    setCurrentLine(lineNumber);
+    setDecodeCurrentLine(lineNumber);
+  }, [currentCharIndex, mode]);
 
-    // Decode mode: Account for alternating line lengths (13, 12, 13, 12...)
+  // Morse code mappings (moved up so they can be used for content parsing)
 
-    // Line 0: chars 0-12 (13 chars), Line 1: chars 13-24 (12 chars), Line 2: chars 25-37 (13 chars), etc.
+  const morseCodeMap = {
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
+  };
 
-    let decodeCompletedLines = 0;
+  const reverseMorseMap = Object.fromEntries(
+    Object.entries(morseCodeMap).map(([k, v]) => [v, k])
+  );
 
-    let remainingChars = currentCharIndex;
+  // Helper: shuffle an array (Fisher-Yates)
+  const shuffleArray = (arr) => {
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
-    while (remainingChars > 0) {
-      const isOddLine = decodeCompletedLines % 2 === 1;
+  // Helper: generate random letters A-Z
+  const allAZLetters = Object.keys(morseCodeMap); // A-Z
+  const generateRandomLetters = (count) => {
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(allAZLetters[Math.floor(Math.random() * allAZLetters.length)]);
+    }
+    return result;
+  };
 
-      const charsInThisLine = isOddLine ? 12 : 13;
+  // Word bank for random generation when backend has no content
+  const WORD_BANK = [
+    "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HAD",
+    "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS",
+    "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "WAY", "WHO", "BOY", "DID",
+    "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE", "CAT", "DOG", "RUN",
+    "SUN", "FUN", "BIG", "RED", "BLUE", "GREEN", "CODE", "MORE", "SOME",
+    "COME", "HOME", "LIVE", "LOVE", "WORK", "WORD", "LONG", "TIME", "GOOD",
+    "MUCH", "MUST", "OVER", "SUCH", "TAKE", "THAN", "THEM", "THEN", "THEY",
+    "THIS", "WITH", "FROM", "HAVE", "BEEN", "WERE", "WHAT", "WHEN", "WILL",
+    "YOUR", "ABOUT", "AFTER", "AGAIN", "BEFORE", "EVERY", "FIRST", "OTHER",
+    "RIGHT", "SOUND", "STILL", "THREE", "WATER", "WHERE", "WHICH", "WORLD",
+    "WRITE", "LETTER", "NUMBER", "LITTLE", "PEOPLE", "THINK", "THING", "PLACE",
+  ];
 
-      if (remainingChars >= charsInThisLine) {
-        remainingChars -= charsInThisLine;
+  // Fetch content from backend API when mode/type/length changes
+  const modeMapping = { "encode": 1, "decode": 2 };
+  const symbolMapping = { "a-z": 1, "word": 2 };
+  const difficultyMapping = { "10": 1, "15": 2, "50": 3, "100": 4 };
 
-        decodeCompletedLines++;
-      } else {
-        break;
+  const fetchContent = async () => {
+    const numItems = parseInt(length, 10);
+    const modeId = modeMapping[mode];
+    const symbolId = symbolMapping[type];
+    const difficultyId = difficultyMapping[length];
+
+    if (!modeId || !symbolId || !difficultyId) return;
+
+    setContentLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/contents?modeId=${modeId}&difficultyId=${difficultyId}&symbolId=${symbolId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0 && data[0].content) {
+          const contentStr = data[0].content.trim();
+
+          if (type === "word") {
+            const words = contentStr.split(/\s+/).filter(Boolean).map(w => w.toUpperCase());
+            setFetchedWordList(shuffleArray(words));
+            setContentLoading(false);
+            return;
+          } else {
+            const letters = contentStr.split(/\s+/).filter(Boolean).map(c => c.toUpperCase());
+            const shuffled = shuffleArray(letters);
+            if (mode === "encode") {
+              setFetchedEncodeArray(shuffled);
+            } else {
+              const morseArr = shuffled.map(l => morseCodeMap[l]).filter(Boolean);
+              setFetchedDecodeArray(morseArr);
+            }
+            setContentLoading(false);
+            return;
+          }
+        }
       }
+    } catch (err) {
+      console.error('Failed to fetch content from backend:', err);
     }
 
-    setDecodeCurrentLine(decodeCompletedLines);
-  }, [currentCharIndex]);
+    // Backend returned no content — generate random content client-side
+    if (type === "word") {
+      const shuffled = shuffleArray(WORD_BANK);
+      setFetchedWordList(shuffled.slice(0, numItems));
+    } else {
+      const randomLetters = generateRandomLetters(numItems);
+      if (mode === "encode") {
+        setFetchedEncodeArray(randomLetters);
+      } else {
+        const morseArr = randomLetters.map(l => morseCodeMap[l]).filter(Boolean);
+        setFetchedDecodeArray(morseArr);
+      }
+    }
+    setContentLoading(false);
+  };
 
-  // Generate full 100-length arrays
+  useEffect(() => {
+    // Reset fetched content to null when settings change
+    setFetchedEncodeArray(null);
+    setFetchedDecodeArray(null);
+    setFetchedWordList(null);
+
+    fetchContent();
+  }, [mode, type, length]);
 
   const fullEncodeArray = [
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
-
-    "A",
-
-    "E",
-
-    "I",
-
-    "O",
-
-    "U",
+    "loading...",
   ];
 
   const fullDecodeArray = [
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
-
-    ".-",
-
-    ".",
-
-    "..",
-
-    "---",
-
-    "..-",
+    "loading...",
   ];
 
-  // Use selected length from menu
+  // Use fetched content if available, otherwise use hardcoded fallback
 
-  const targetLettersEncode = fullEncodeArray.slice(0, parseInt(length));
+  const targetLettersEncode = fetchedEncodeArray || fullEncodeArray.slice(0, parseInt(length));
 
-  const targetLettersDecode = fullDecodeArray.slice(0, parseInt(length));
+  const targetLettersDecode = fetchedDecodeArray || fullDecodeArray.slice(0, parseInt(length));
 
   const targetLetters =
     mode === "encode" ? targetLettersEncode : targetLettersDecode;
 
-  // Morse code mappings
+  // morseCodeMap is defined above (before useEffect)
 
-  const morseCodeMap = {
-    A: ".-",
+  // Word mode: use fetched word list or fallback to hardcoded list
 
-    B: "-...",
-
-    C: "-.-.",
-
-    D: "-..",
-
-    E: ".",
-
-    F: "..-.",
-
-    G: "--.",
-
-    H: "....",
-
-    I: "..",
-
-    J: ".---",
-
-    K: "-.-",
-
-    L: ".-..",
-
-    M: "--",
-
-    N: "-.",
-
-    O: "---",
-
-    P: ".--.",
-
-    Q: "--.-",
-
-    R: ".-.",
-
-    S: "...",
-
-    T: "-",
-
-    U: "..-",
-
-    V: "...-",
-
-    W: ".--",
-
-    X: "-..-",
-
-    Y: "-.--",
-
-    Z: "--..",
-  };
-
-  // Word mode: list of words (A–Z only). Length = number of words (10, 15, 50, 100).
-
-  const WORD_LIST = [
-    "THE",
-    "AND",
-    "FOR",
-    "ARE",
-    "BUT",
-    "NOT",
-    "YOU",
-    "ALL",
-    "CAN",
-    "HAD",
-
-    "HER",
-    "WAS",
-    "ONE",
-    "OUR",
-    "OUT",
-    "DAY",
-    "GET",
-    "HAS",
-    "HIM",
-    "HIS",
-
-    "HOW",
-    "MAN",
-    "NEW",
-    "NOW",
-    "OLD",
-    "SEE",
-    "WAY",
-    "WHO",
-    "BOY",
-    "DID",
-
-    "ITS",
-    "LET",
-    "PUT",
-    "SAY",
-    "SHE",
-    "TOO",
-    "USE",
-    "CAT",
-    "DOG",
-    "RUN",
-
-    "SUN",
-    "FUN",
-    "BIG",
-    "RED",
-    "BLUE",
-    "GREEN",
-    "CODE",
-    "MORE",
-    "SOME",
-
-    "COME",
-    "HOME",
-    "LIVE",
-    "LOVE",
-    "WORK",
-    "WORD",
-    "LONG",
-    "TIME",
-    "GOOD",
-
-    "MUCH",
-    "MUST",
-    "OVER",
-    "SUCH",
-    "TAKE",
-    "THAN",
-    "THEM",
-    "THEN",
-    "THEY",
-
-    "THIS",
-    "WITH",
-    "FROM",
-    "HAVE",
-    "BEEN",
-    "WERE",
-    "WHAT",
-    "WHEN",
-    "WILL",
-
-    "YOUR",
-    "ABOUT",
-    "AFTER",
-    "AGAIN",
-    "BEFORE",
-    "EVERY",
-    "FIRST",
-    "OTHER",
-
-    "RIGHT",
-    "SOUND",
-    "STILL",
-    "THREE",
-    "WATER",
-    "WHERE",
-    "WHICH",
-    "WORLD",
-
-    "WRITE",
-    "LETTER",
-    "NUMBER",
-    "LITTLE",
-    "PEOPLE",
-    "THINK",
-    "THING",
-    "PLACE",
+  const FALLBACK_WORD_LIST = [
+    "loading...",
+    // "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HAD",
+    // "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS",
+    // "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "WAY", "WHO", "BOY", "DID",
+    // "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE", "CAT", "DOG", "RUN",
+    // "SUN", "FUN", "BIG", "RED", "BLUE", "GREEN", "CODE", "MORE", "SOME",
+    // "COME", "HOME", "LIVE", "LOVE", "WORK", "WORD", "LONG", "TIME", "GOOD",
+    // "MUCH", "MUST", "OVER", "SUCH", "TAKE", "THAN", "THEM", "THEN", "THEY",
+    // "THIS", "WITH", "FROM", "HAVE", "BEEN", "WERE", "WHAT", "WHEN", "WILL",
+    // "YOUR", "ABOUT", "AFTER", "AGAIN", "BEFORE", "EVERY", "FIRST", "OTHER",
+    // "RIGHT", "SOUND", "STILL", "THREE", "WATER", "WHERE", "WHICH", "WORLD",
+    // "WRITE", "LETTER", "NUMBER", "LITTLE", "PEOPLE", "THINK", "THING", "PLACE",
   ];
 
   const numWords = parseInt(length, 10);
 
-  const targetWordsEncode = WORD_LIST.slice(
-    0,
-    Math.min(numWords, WORD_LIST.length),
-  );
+  const WORD_LIST = fetchedWordList || FALLBACK_WORD_LIST.slice(0, Math.min(numWords, FALLBACK_WORD_LIST.length));
 
-  const targetWordsDecode = targetWordsEncode.map((word) =>
-    word
+  const targetWordsEncode = WORD_LIST;
+
+  const targetWordsDecode = targetWordsEncode.map((word) => {
+    if (word === "loading...") {
+      return ["loading..."];
+    }
+    return word
       .split("")
       .map((c) => morseCodeMap[c])
-      .filter(Boolean),
-  );
+      .filter(Boolean);
+  });
 
   const encodeCurrentWord = targetWordsEncode[encodeWordIndex] ?? "";
 
@@ -887,10 +540,13 @@ export default function Home() {
 
         setSpacebarStartTime(Date.now());
 
+        // Play continuous morse sound in encode mode
+        if (mode === "encode") {
+          startMorseSound();
+        }
+
         // Record first input time and start session tracking
         recordFirstInput();
-
-        // Clear any existing timeout when user starts typing
 
         if (inputTimeout) {
           clearTimeout(inputTimeout);
@@ -1052,6 +708,11 @@ export default function Home() {
         e.preventDefault();
 
         const pressDuration = Date.now() - spacebarStartTime;
+
+        // Stop morse sound when spacebar is released
+        if (mode === "encode") {
+          stopMorseSound();
+        }
 
         const morseChar = pressDuration >= 150 ? "-" : ".";
 
@@ -1269,29 +930,63 @@ export default function Home() {
         <>
           {/* Mobile/tablet: 3 dropdowns */}
           <div
+<<<<<<< HEAD
             className={`${spmono.className} md:hidden font-bold w-full max-w-[705px] px-4 py-4 bg-card rounded-xl flex flex-wrap justify-center sm:justify-between items-center gap-3 sm:gap-4 mt-14`}
+=======
+            className={`${spmono.className} md:hidden font-bold w-full max-w-[705px] px-4 py-4 rounded-xl flex flex-wrap justify-center sm:justify-between items-center gap-3 sm:gap-4 mt-14 transition-colors duration-300`}
+            style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+>>>>>>> origin/main
           >
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
+<<<<<<< HEAD
               className={`${spmono.className} font-bold bg-card text-foreground border border-border rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[120px]`}
               aria-label="Mode"
             >
               <option value="decode" className="bg-card text-foreground">decode</option>
               <option value="encode" className="bg-card text-foreground">encode</option>
+=======
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[120px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
+              aria-label="Mode"
+            >
+              <option value="decode">decode</option>
+              <option value="encode">encode</option>
+>>>>>>> origin/main
             </select>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
+<<<<<<< HEAD
               className={`${spmono.className} font-bold bg-card text-foreground border border-border rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[120px]`}
               aria-label="Type"
             >
               <option value="a-z" className="bg-card text-foreground">a-z</option>
               <option value="word" className="bg-card text-foreground">word</option>
+=======
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[120px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
+              aria-label="Type"
+            >
+              <option value="a-z">a-z</option>
+              <option value="word">word</option>
+>>>>>>> origin/main
             </select>
             <select
               value={length}
               onChange={(e) => setLength(e.target.value)}
+<<<<<<< HEAD
               className={`${spmono.className} font-bold bg-card text-foreground border border-border rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EF4444] focus:border-transparent min-w-[100px]`}
               aria-label="Length"
             >
@@ -1299,10 +994,26 @@ export default function Home() {
               <option value="15" className="bg-card text-foreground">15</option>
               <option value="50" className="bg-card text-foreground">50</option>
               <option value="100" className="bg-card text-foreground">100</option>
+=======
+              className={`${spmono.className} font-bold rounded-lg px-4 py-3 cursor-pointer focus:outline-none focus:ring-2 transition-colors min-w-[100px]`}
+              style={{ 
+                backgroundColor: 'var(--background)', 
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                '--tw-ring-color': 'var(--primary)'
+              }}
+              aria-label="Length"
+            >
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+>>>>>>> origin/main
             </select>
           </div>
           {/* Desktop: original button bar */}
           <div
+<<<<<<< HEAD
             className={`${spmono.className} hidden md:flex font-bold w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 bg-card rounded-xl justify-between items-center gap-1 sm:gap-2 mt-14`}
           >
             <button
@@ -1311,11 +1022,21 @@ export default function Home() {
                 ? "text-primary"
                 : "text-foreground/70 hover:text-foreground"
                 }`}
+=======
+            className={`${spmono.className} hidden md:flex font-bold w-full max-w-[705px] min-h-[65px] px-2 sm:px-4 rounded-xl justify-between items-center gap-1 sm:gap-2 mt-14 transition-colors duration-300`}
+          style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)', border: '1px solid var(--border)' }}
+          >
+            <button
+              onClick={() => setMode("decode")}
+              className={`pl-4 pr-2 md:pl-10 md:pr-4 py-4 transition-colors duration-300`}
+              style={{ color: mode === "decode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "decode" ? 1 : 0.7 }}
+>>>>>>> origin/main
             >
               decode
             </button>
             <button
               onClick={() => setMode("encode")}
+<<<<<<< HEAD
               className={`px-4 py-4 transition-colors duration-300 ${mode === "encode"
                 ? "text-primary"
                 : "text-foreground/70 hover:text-foreground"
@@ -1330,11 +1051,24 @@ export default function Home() {
                 ? "text-primary"
                 : "text-foreground/70 hover:text-foreground"
                 }`}
+=======
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: mode === "encode" ? 'var(--primary)' : 'var(--foreground)', opacity: mode === "encode" ? 1 : 0.7 }}
+            >
+              encode
+            </button>
+            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
+            <button
+              onClick={() => setType("a-z")}
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: type === "a-z" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "a-z" ? 1 : 0.7 }}
+>>>>>>> origin/main
             >
               a-z
             </button>
             <button
               onClick={() => setType("word")}
+<<<<<<< HEAD
               className={`px-4 py-4 transition-colors duration-300 ${type === "word"
                 ? "text-primary"
                 : "text-foreground/70 hover:text-foreground"
@@ -1343,15 +1077,28 @@ export default function Home() {
               word
             </button>
             <p className="text-foreground/70">|</p>
+=======
+              className={`px-4 py-4 transition-colors duration-300`}
+              style={{ color: type === "word" ? 'var(--primary)' : 'var(--foreground)', opacity: type === "word" ? 1 : 0.7 }}
+            >
+              word
+            </button>
+            <p style={{ color: 'var(--foreground)', opacity: 0.7 }}>|</p>
+>>>>>>> origin/main
             <div className="flex">
               {["10", "15", "50", "100"].map((len) => (
                 <button
                   key={len}
                   onClick={() => setLength(len)}
+<<<<<<< HEAD
                   className={`px-4 py-4 transition-colors duration-300 ${length === len
                     ? "text-primary"
                     : "text-foreground/70 hover:text-foreground"
                     } ${len === "100" ? "pr-10" : ""}`}
+=======
+                  className={`px-4 py-4 transition-colors duration-300 ${len === "100" ? "pr-10" : ""}`}
+                  style={{ color: length === len ? 'var(--primary)' : 'var(--foreground)', opacity: length === len ? 1 : 0.7 }}
+>>>>>>> origin/main
                 >
                   {len}
                 </button>
@@ -1367,36 +1114,63 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
               <div>
                 <p
+<<<<<<< HEAD
                   className={`${spmono.className} text-foreground/70 font-bold text-[20px]`}
+=======
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
+>>>>>>> origin/main
                 >
                   wpm
                 </p>
 
+<<<<<<< HEAD
                 <p className={`${spmono.className} text-primary text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+=======
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
+>>>>>>> origin/main
                   {calculateMetrics()?.wpm || 0}
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
+<<<<<<< HEAD
                   className={`${spmono.className} text-foreground/70 font-bold text-[20px]`}
+=======
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
+>>>>>>> origin/main
                 >
                   accuracy
                 </p>
 
+<<<<<<< HEAD
                 <p className={`${spmono.className} text-primary text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+=======
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
+>>>>>>> origin/main
                   {calculateMetrics()?.accuracy || 0}%
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
+<<<<<<< HEAD
                   className={`${spmono.className} text-foreground/70 font-bold text-[20px]`}
+=======
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
+>>>>>>> origin/main
                 >
                   time
                 </p>
 
+<<<<<<< HEAD
                 <p className={`${spmono.className} text-primary text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`}>
+=======
+                <p className={`${spmono.className} text-[48px] sm:text-6xl md:text-8xl lg:text-[96px]`} style={{ color: 'var(--primary)' }}>
+>>>>>>> origin/main
                   {calculateMetrics()?.timeTaken || 0}s
                 </p>
               </div>
@@ -1405,24 +1179,42 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mt-6">
               <div>
                 <p
+<<<<<<< HEAD
                   className={`${spmono.className} text-foreground/70 font-bold text-[20px]`}
+=======
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
+>>>>>>> origin/main
                 >
                   mode
                 </p>
 
+<<<<<<< HEAD
                 <p className={`${spmono.className} text-primary text-[20px]`}>
+=======
+                <p className={`${spmono.className} text-[20px]`} style={{ color: 'var(--primary)' }}>
+>>>>>>> origin/main
                   {mode} {type}
                 </p>
               </div>
 
               <div className="sm:ml-10">
                 <p
+<<<<<<< HEAD
                   className={`${spmono.className} text-foreground/70 font-bold text-[20px]`}
+=======
+                  className={`${spmono.className} font-bold text-[20px]`}
+                  style={{ color: 'var(--foreground)', opacity: 0.7 }}
+>>>>>>> origin/main
                 >
                   date
                 </p>
 
+<<<<<<< HEAD
                 <p className={`${spmono.className} text-primary text-[20px]`}>
+=======
+                <p className={`${spmono.className} text-[20px]`} style={{ color: 'var(--primary)' }}>
+>>>>>>> origin/main
                   {new Date().toLocaleDateString()}
                 </p>
               </div>
@@ -1444,6 +1236,9 @@ export default function Home() {
 
               setDecodeCurrentCharIndex(0);
 
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
+
               setEncodeWordIndex(0);
 
               setEncodeLetterInWordIndex(0);
@@ -1451,10 +1246,6 @@ export default function Home() {
               setDecodeWordIndex(0);
 
               setDecodeLetterInWordIndex(0);
-
-              setCurrentLine(0);
-
-              setDecodeCurrentLine(0);
 
               setIsError(false);
 
@@ -1465,6 +1256,9 @@ export default function Home() {
               setIsCompleted(false);
 
               setIsFading(false);
+
+              // Fetch new random content
+              fetchContent();
 
               // Reset session tracking
               startSession();
@@ -1483,41 +1277,60 @@ export default function Home() {
             } flex flex-col items-center px-4`}
         >
           <div
-            className="flex flex-wrap justify-center mt-20 sm:mt-40 max-w-7xl relative px-4"
-            style={{ height: "60px", overflow: "hidden" }}
+            className="flex flex-wrap justify-center mt-20 sm:mt-40 max-w-7xl relative px-4 h-[120px] sm:h-[159px] overflow-hidden"
           >
             <div
+              ref={innerWrapRef}
               className="flex flex-wrap justify-center"
-              style={
-                type === "word"
-                  ? undefined
-                  : {
-                    transform: `translateY(-${decodeCurrentLine * 80}px)`,
-
-                    transition:
-                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+              style={{
+                transform: `translateY(-${Math.max(0, decodeCurrentLine - 1) * (() => {
+                  if (!innerWrapRef.current) {
+                    const width = window?.innerWidth || 768;
+                    if (width < 640) return 40;
+                    if (width < 1024) return 45;
+                    return 53;
                   }
-              }
+                  const firstChild = innerWrapRef.current.children[0];
+                  return firstChild ? firstChild.offsetHeight : 53;
+                })()}px)`,
+                transition: "transform 0.3s ease",
+              }}
             >
-              {(type === "word" ? decodeCurrentWordMorse : targetLetters).map(
-                (letter, index) => {
-                  const currentIdx =
-                    type === "word"
-                      ? decodeLetterInWordIndex
-                      : currentCharIndex;
+              {type === "word"
+                ? targetWordsDecode.map((wordMorse, wIdx) => (
+                  <React.Fragment key={`dw-${wIdx}`}>
+                    {wordMorse.map((morse, lIdx) => {
+                      const isPast = wIdx < decodeWordIndex || (wIdx === decodeWordIndex && lIdx < decodeLetterInWordIndex);
+                      const isCurrent = wIdx === decodeWordIndex && lIdx === decodeLetterInWordIndex;
 
-                  const isPast =
-                    type === "word"
-                      ? index < decodeLetterInWordIndex
-                      : index < currentCharIndex;
-
-                  const isCurrent = index === currentIdx;
+                      return (
+                        <p
+                          key={`dw-${wIdx}-${lIdx}`}
+                          className={`${spmono.className
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                              ? "text-white"
+                              : isCurrent && isError
+                                ? "text-red-500 animate-shake"
+                                : "text-[#5a5e61]"
+                            }`}
+                          style={{ margin: "0 0.25rem" }}
+                        >
+                          {morse}
+                        </p>
+                      );
+                    })}
+                    {wIdx < targetWordsDecode.length - 1 && (
+                      <span key={`dw-gap-${wIdx}`} className="inline-block w-6" />
+                    )}
+                  </React.Fragment>
+                ))
+                : targetLetters.map((letter, index) => {
+                  const isPast = index < currentCharIndex;
+                  const isCurrent = index === currentCharIndex;
 
                   return (
                     <p
-                      key={
-                        type === "word" ? `w${decodeWordIndex}-${index}` : index
-                      }
+                      key={index}
                       className={`${spmono.className
                         } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
                           ? "text-foreground"
@@ -1530,8 +1343,7 @@ export default function Home() {
                       {letter}
                     </p>
                   );
-                },
-              )}
+                })}
             </div>
 
             {type === "word" && targetWordsDecode.length > 0 && (
@@ -1559,7 +1371,6 @@ export default function Home() {
               setDecodeCurrentCharIndex(0);
 
               setCurrentLine(0);
-
               setDecodeCurrentLine(0);
 
               setIsError(false);
@@ -1572,6 +1383,9 @@ export default function Home() {
 
               setIsFading(false);
 
+              // Fetch new random content
+              fetchContent();
+
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
 
@@ -1581,27 +1395,77 @@ export default function Home() {
           />
 
           <p
-            className={`${spmono.className
-              } text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300 ${isError
-                ? "text-red-500 animate-shake"
+            className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold mt-20 transition-colors duration-300`}
+            style={{
+              color: isError
+                ? 'var(--error)'
                 : isSuccess
+<<<<<<< HEAD
                   ? "text-green-500"
                   : "text-foreground"
               }`}
+=======
+                  ? 'var(--success)'
+                  : 'var(--foreground)'
+            }}
+>>>>>>> origin/main
           >
             {isSuccess
               ? successDisplay
               : charInput || (
+<<<<<<< HEAD
                 <span className="text-lg sm:text-xl md:text-[24px] text-foreground/70">type</span>
+=======
+                <span className="text-lg sm:text-xl md:text-[24px]" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                  <span className="hidden md:inline">type</span>
+                  <span className="md:hidden">tap below to type</span>
+                </span>
+>>>>>>> origin/main
               )}
           </p>
+
+          {/* Hidden input for mobile keyboard - decode mode */}
+          <input
+            ref={mobileInputRef}
+            type="text"
+            inputMode="text"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            style={{ position: 'fixed', opacity: 0, width: '1px', height: '1px', top: '-100px' }}
+            onInput={(e) => {
+              const val = e.target.value;
+              if (val.length > 0) {
+                const key = val.charAt(val.length - 1);
+                if (key.match(/[a-zA-Z]/)) {
+                  window.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: key,
+                    code: `Key${key.toUpperCase()}`,
+                    bubbles: true
+                  }));
+                }
+                e.target.value = '';
+              }
+            }}
+          />
+
+          {/* Tap to type button for mobile/tablet */}
+          <div
+            className="md:hidden w-full max-w-[300px] h-24 bg-[#1E2332] rounded-xl flex items-center justify-center mt-6 select-none cursor-pointer active:bg-[#2A3247] transition-colors"
+            onClick={() => mobileInputRef.current?.focus()}
+          >
+            <p className={`${spmono.className} font-bold text-[#9CA3AF] text-lg select-none pointer-events-none`}>
+              tap to type
+            </p>
+          </div>
 
           <div className="mt-30 px-4">
             <div className="bg-[#717171] text-[11px]">
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1`}
               >
-                type - to input
+                <span className="hidden md:inline">type - to input</span>
+                <span className="md:hidden">tap button - to type</span>
               </p>
             </div>
 
@@ -1609,7 +1473,8 @@ export default function Home() {
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3`}
               >
-                enter - to reset
+                <span className="hidden md:inline">enter - to reset</span>
+                <span className="md:hidden">tap reset icon above</span>
               </p>
             </div>
           </div>
@@ -1701,6 +1566,9 @@ export default function Home() {
 
               setIsCompleted(false);
 
+              // Fetch new random content
+              fetchContent();
+
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
 
@@ -1712,37 +1580,59 @@ export default function Home() {
       ) : (
         <>
           <div
-            ref={containerRef}
             className={`flex flex-wrap mt-20 sm:mt-40 max-w-7xl relative px-4 ${type === "word" ? "justify-center" : ""
-              }`}
-            style={{ height: "60px", overflow: "hidden" }}
+              } h-[120px] sm:h-[159px] overflow-hidden`}
           >
             <div
-              className={`flex flex-wrap ${type === "word" ? "justify-center" : ""
-                }`}
-              style={
-                type === "word"
-                  ? undefined
-                  : {
-                    transform: `translateY(-${currentLine * 80}px)`,
-
-                    transition:
-                      "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+              ref={innerWrapRef}
+              className={`flex flex-wrap ${type === "word" ? "justify-center" : ""}`}
+              style={{
+                transform: `translateY(-${Math.max(0, currentLine - 1) * (() => {
+                  if (!innerWrapRef.current) {
+                    const width = window?.innerWidth || 768;
+                    if (width < 640) return 40;
+                    if (width < 1024) return 45;
+                    return 53;
                   }
-              }
+                  const firstChild = innerWrapRef.current.children[0];
+                  return firstChild ? firstChild.offsetHeight : 53;
+                })()}px)`,
+                transition: "transform 0.3s ease",
+              }}
             >
-              {(type === "word"
-                ? encodeCurrentWord.split("")
-                : targetLettersEncode
-              ).map((letter, index) => {
-                const currentIdx =
-                  type === "word" ? encodeLetterInWordIndex : currentCharIndex;
+              {type === "word"
+                ? targetWordsEncode.map((word, wIdx) => (
+                  <React.Fragment key={`ew-${wIdx}`}>
+                    {word.split("").map((letter, lIdx) => {
+                      const isPast = wIdx < encodeWordIndex || (wIdx === encodeWordIndex && lIdx < encodeLetterInWordIndex);
+                      const isCurrent = wIdx === encodeWordIndex && lIdx === encodeLetterInWordIndex;
 
-                const isPast =
-                  type === "word"
-                    ? index < encodeLetterInWordIndex
-                    : index < currentCharIndex;
+                      return (
+                        <p
+                          key={`ew-${wIdx}-${lIdx}`}
+                          className={`${spmono.className
+                            } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                              ? "text-white"
+                              : isCurrent && isError
+                                ? "text-red-500 animate-shake"
+                                : "text-[#5a5e61]"
+                            }`}
+                          style={{ margin: "0 0.25rem" }}
+                        >
+                          {letter}
+                        </p>
+                      );
+                    })}
+                    {wIdx < targetWordsEncode.length - 1 && (
+                      <span key={`ew-gap-${wIdx}`} className="inline-block w-6" />
+                    )}
+                  </React.Fragment>
+                ))
+                : targetLettersEncode.map((letter, index) => {
+                  const isPast = index < currentCharIndex;
+                  const isCurrent = index === currentCharIndex;
 
+<<<<<<< HEAD
                 const isCurrent = index === currentIdx;
 
                 return (
@@ -1763,6 +1653,24 @@ export default function Home() {
                   </p>
                 );
               })}
+=======
+                  return (
+                    <p
+                      key={index}
+                      className={`${spmono.className
+                        } text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${isPast
+                          ? "text-white"
+                          : isCurrent && isError
+                            ? "text-red-500 animate-shake"
+                            : "text-[#5a5e61]"
+                        }`}
+                      style={{ margin: "0 1rem" }}
+                    >
+                      {letter}
+                    </p>
+                  );
+                })}
+>>>>>>> origin/main
             </div>
 
             {type === "word" && targetWordsEncode.length > 0 && (
@@ -1787,6 +1695,9 @@ export default function Home() {
 
               setDecodeCurrentCharIndex(0);
 
+              setCurrentLine(0);
+              setDecodeCurrentLine(0);
+
               setEncodeWordIndex(0);
 
               setEncodeLetterInWordIndex(0);
@@ -1795,10 +1706,6 @@ export default function Home() {
 
               setDecodeLetterInWordIndex(0);
 
-              setCurrentLine(0);
-
-              setDecodeCurrentLine(0);
-
               setIsError(false);
 
               setIsSuccess(false);
@@ -1806,6 +1713,9 @@ export default function Home() {
               setSuccessDisplay("");
 
               setIsCompleted(false);
+
+              // Fetch new random content
+              fetchContent();
 
               if (inputTimeout) {
                 clearTimeout(inputTimeout);
@@ -1827,18 +1737,43 @@ export default function Home() {
             {isSuccess
               ? successDisplay
               : morseInput || (
+<<<<<<< HEAD
                 <span className="text-lg sm:text-xl md:text-[24px] text-foreground/70">
                   press spacebar
+=======
+                <span className="text-lg sm:text-xl md:text-[24px] text-[#9CA3AF]">
+                  <span className="hidden md:inline">press spacebar</span>
+                  <span className="md:hidden">hold button below</span>
+>>>>>>> origin/main
                 </span>
               )}
           </p>
+
+          {/* Touch input button for mobile/tablet */}
+          <div
+            className={`md:hidden w-full max-w-[300px] h-24 rounded-xl flex items-center justify-center mt-6 select-none transition-colors ${isSpacebarPressed ? 'bg-[#EF4444]' : 'bg-[#1E2332] active:bg-[#2A3247]'}`}
+            style={{ touchAction: 'none' }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
+            }}
+          >
+            <p className={`${spmono.className} font-bold text-lg select-none pointer-events-none ${isSpacebarPressed ? 'text-white' : 'text-[#9CA3AF]'}`}>
+              {isSpacebarPressed ? '...' : 'hold to input'}
+            </p>
+          </div>
 
           <div className="mt-30 px-4">
             <div className="bg-[#717171] text-[11px]">
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1`}
               >
-                spacebar - to input
+                <span className="hidden md:inline">spacebar - to input</span>
+                <span className="md:hidden">hold - dot / long hold - dash</span>
               </p>
             </div>
 
@@ -1846,7 +1781,8 @@ export default function Home() {
               <p
                 className={`${spmono.className} font-bold text-[#141720] mx-1 mt-3 text-center`}
               >
-                enter - to reset
+                <span className="hidden md:inline">enter - to reset</span>
+                <span className="md:hidden">tap reset icon above</span>
               </p>
             </div>
           </div>

@@ -31,4 +31,59 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/leaderboard/by-mode?mode=decode&symbol=a-z&amtWord=10
+// Returns top players for a specific mode combination, ranked by best score (highWpm)
+router.get('/by-mode', async (req, res) => {
+    try {
+        const { mode, symbol, amtWord } = req.query;
+
+        if (!mode || !symbol || !amtWord) {
+            return res.status(400).json({ error: 'mode, symbol, and amtWord are required' });
+        }
+
+        const modeRecord = await req.prisma.mode.findUnique({ where: { name: mode } });
+        const symbolRecord = await req.prisma.symbol.findUnique({ where: { name: symbol } });
+        const difficultyRecord = await req.prisma.difficulty.findFirst({ where: { amtWord: parseInt(amtWord) } });
+
+        if (!modeRecord || !symbolRecord || !difficultyRecord) {
+            return res.json([]);
+        }
+
+        const statuses = await req.prisma.userModeStatus.findMany({
+            where: {
+                modeId: modeRecord.id,
+                symbolId: symbolRecord.id,
+                difficultyId: difficultyRecord.id,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                    }
+                }
+            },
+            orderBy: [
+                { highWpm: 'desc' },
+                { highAccuracy: 'desc' }
+            ],
+            take: 50
+        });
+
+        const leaderboard = statuses.map((s, index) => ({
+            id: s.user.id,
+            username: s.user.username,
+            rank: index + 1,
+            highWpm: s.highWpm,
+            highAccuracy: s.highAccuracy,
+            updatedAt: s.updatedAt,
+        }));
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('Leaderboard by-mode fetch error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;

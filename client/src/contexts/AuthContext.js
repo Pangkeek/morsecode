@@ -8,6 +8,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,6 +18,7 @@ export function AuthProvider({ children }) {
 
     if (token && userData) {
       setUser(JSON.parse(userData));
+      getSettings(); // Load user settings
     }
     setLoading(false);
   }, []);
@@ -102,6 +104,66 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const getSettings = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      const response = await fetch('https://morsecode-production.up.railway.app/api/settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const settingsData = await response.json();
+        setSettings(settingsData);
+        return settingsData;
+      }
+    } catch (error) {
+      console.error('❌ Error fetching settings:', error);
+    }
+    return settings;
+  };
+
+  const saveSettings = async (settingsData) => {
+    try {
+      console.log('🚀 Saving settings to:', 'https://morsecode-production.up.railway.app/api/settings');
+      console.log('⚙️ Settings data:', settingsData);
+      
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      console.log('🔑 Token exists:', !!token);
+      
+      const response = await fetch('https://morsecode-production.up.railway.app/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(settingsData)
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        console.error('❌ Response error:', errorData);
+        throw new Error(errorData.error || 'Failed to save settings');
+      }
+
+      const result = await response.json();
+      console.log('✅ Settings saved successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error saving settings:', error);
+      throw error;
+    }
+  };
+
   const fetchUserInfo = async () => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -129,10 +191,13 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
+    settings,
     login,
     logout,
     loading,
     submitGameResult,
+    saveSettings,
+    getSettings,
     refreshUser
   };
 

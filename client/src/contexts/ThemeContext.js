@@ -12,40 +12,6 @@ export function ThemeProvider({ children }) {
 
     const API_URL = "https://morsecode-production.up.railway.app/api";
 
-    // Fetch settings when user logs in
-    useEffect(() => {
-        const fetchSettings = async () => {
-            if (!user) {
-                // Reset to default if logged out
-                setTheme('dark');
-                applyThemeToHtml('dark');
-                return;
-            }
-
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (!token) return;
-
-                const response = await fetch(`${API_URL}/settings`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSettings(data);
-                    if (data.theme) {
-                        setTheme(data.theme);
-                        applyThemeToHtml(data.theme);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching theme settings:', error);
-            }
-        };
-
-        fetchSettings();
-    }, [user]);
-
     const applyThemeToHtml = (selectedTheme) => {
         // Remove old theme classes
         document.documentElement.classList.remove('dark', 'theme-cyberpunk', 'theme-light');
@@ -59,10 +25,54 @@ export function ThemeProvider({ children }) {
         }
     };
 
+    // Apply cached theme immediately on mount, and sync with backend in background
+    useEffect(() => {
+        const cachedTheme = localStorage.getItem('cachedTheme');
+        if (cachedTheme) {
+            setTheme(cachedTheme);
+            applyThemeToHtml(cachedTheme);
+        }
+
+        // Only fetch from backend if we have a user and no cached theme, or to sync in background
+        if (user) {
+            const fetchSettings = async () => {
+                try {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    if (!token) return;
+
+                    const response = await fetch(`${API_URL}/settings`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        setSettings(data);
+
+                        // Only update theme if backend has different theme than cached
+                        if (data.theme && data.theme !== cachedTheme) {
+                            setTheme(data.theme);
+                            applyThemeToHtml(data.theme);
+                            localStorage.setItem('cachedTheme', data.theme);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching theme settings:', error);
+                }
+            };
+
+            fetchSettings();
+        } else if (!cachedTheme) {
+            // Only reset to default if no cached theme and no user
+            setTheme('dark');
+            applyThemeToHtml('dark');
+        }
+    }, [user]);
+
     const updateTheme = async (newTheme) => {
-        // Optimistic UI update
+        // Optimistic UI update with caching
         setTheme(newTheme);
         applyThemeToHtml(newTheme);
+        localStorage.setItem('cachedTheme', newTheme);
 
         if (!user) return; // Only save to backend if logged in
 
