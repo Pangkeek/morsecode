@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Space_Mono } from 'next/font/google';
@@ -264,29 +264,6 @@ export default function Practice() {
               className="flex flex-col items-center"
             >
               {/* Character */}
-<<<<<<< HEAD
-              <p className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${
-                isSuccess && isCurrent
-                  ? 'text-green-500'
-                  : isError && isCurrent
-                    ? 'text-red-500 animate-shake'
-                    : isCompleted 
-                      ? 'text-foreground' 
-                      : 'text-[#5a5e61]'
-              }`}>
-                {letter}
-              </p>
-              {/* Morse code */}
-              <p className={`${spmono.className} text-lg sm:text-xl md:text-[24px] font-bold transition-colors duration-300 ${
-                isSuccess && isCurrent
-                  ? 'text-green-500'
-                  : isError && isCurrent
-                    ? 'text-red-500'
-                    : isCompleted 
-                      ? 'text-foreground/70' 
-                      : 'text-[#5a5e61]'
-              }`}>
-=======
               <p 
                 className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 ${
                   isError && isCurrent ? 'animate-shake' : ''
@@ -318,7 +295,6 @@ export default function Practice() {
                   opacity: isCompleted ? 0.7 : 0.4
                 }}
               >
->>>>>>> origin/main
                 {morseCodeMap[letter]}
               </p>
             </div>
@@ -361,11 +337,6 @@ export default function Practice() {
       />
 
       {/* Current input display */}
-<<<<<<< HEAD
-      <p className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 mt-5 ${
-        isError ? 'text-red-500 animate-shake' : isSuccess ? 'text-green-500' : 'text-foreground'
-      }`}>{isSuccess ? morseCodeMap[currentLetter] : (morseInput || <span className="text-[24px] text-foreground/70">press spacebar</span>)}</p>
-=======
       <p 
         className={`${spmono.className} text-3xl sm:text-4xl md:text-[48px] font-bold transition-colors duration-300 mt-5`}
         style={{
@@ -436,7 +407,6 @@ export default function Practice() {
           tap to type
         </p>
       </div>
->>>>>>> origin/main
 
       {/* Instructions */}
       <div className="mt-15">

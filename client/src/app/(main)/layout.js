@@ -17,11 +17,7 @@ import Navbar from '@/components/Navbar';
 function Mainlayout({ children }) {
   return (
     <ProtectedRoute>
-<<<<<<< HEAD
-      <div className="min-h-screen flex flex-col items-center bg-background px-4">
-=======
       <div className="min-h-screen flex flex-col items-center px-4" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
->>>>>>> origin/main
         <Navbar />
         <div className="pt-[100px] md:pt-[140px] w-full">
           {children}
