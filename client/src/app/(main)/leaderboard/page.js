@@ -28,7 +28,7 @@ export default function Leaderboard() {
     const fetchLeaderboard = async () => {
       setLoading(true);
       try {
-        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
         const res = await fetch(`${API_URL}/leaderboard/by-mode?mode=${mode}&symbol=${type}&amtWord=${length}`);
 
         if (res.ok) {

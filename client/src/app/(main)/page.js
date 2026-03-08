@@ -8,7 +8,7 @@ import { Space_Mono } from "next/font/google";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
-const API_URL = "https://morsecode-production.up.railway.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
 
 const spmono = Space_Mono({
   subsets: ["latin"],

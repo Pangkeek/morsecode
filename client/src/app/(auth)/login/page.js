@@ -21,7 +21,7 @@ function LoginPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        "https://morsecode-production.up.railway.app/api/auth/login",
+        "https://morsecode-edd73a23.up.railway.app/api/auth/login",
         {
           method: "POST",
           headers: {

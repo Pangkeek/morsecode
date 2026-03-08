@@ -39,7 +39,7 @@ export default function Profile() {
           return;
         }
 
-        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
         const res = await fetch(`${API_URL}/play-sessions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -60,7 +60,7 @@ export default function Profile() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) return;
 
-        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
         const res = await fetch(`${API_URL}/user-mode-status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -81,7 +81,7 @@ export default function Profile() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) return;
 
-        const API_URL = "https://morsecode-production.up.railway.app/api";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
         const res = await fetch(`${API_URL}/play-sessions/weakness/global`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -135,7 +135,7 @@ export default function Profile() {
     setLoadingDetails(true);
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const API_URL = "https://morsecode-production.up.railway.app/api";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
       const res = await fetch(`${API_URL}/play-sessions/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
