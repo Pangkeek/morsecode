@@ -13,7 +13,8 @@ async function main() {
   try {
     const playSessions = await prisma.playSession.findMany({
       take: 100,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: { symbol: true } // Include the symbol relation to know which symbol caused the mistake
     });
 
     if (playSessions.length === 0) {
@@ -53,6 +54,9 @@ async function main() {
           data: {
             session: {
                 connect: { id: session.id }
+            },
+            symbol: {
+                connect: { id: session.symbolId }
             },
             question: selectedChar,
             correctAnswer: selectedChar,
