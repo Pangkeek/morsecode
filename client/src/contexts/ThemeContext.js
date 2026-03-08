@@ -10,7 +10,7 @@ export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState('dark'); // 'dark', 'theme-cyberpunk', 'theme-light'
     const [settings, setSettings] = useState(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
 
     const applyThemeToHtml = (selectedTheme) => {
         // Remove old theme classes

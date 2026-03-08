@@ -38,7 +38,7 @@ export default function AdminDashboard() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             if (!token) return;
 
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
 
             // Fetch Metrics
             const metricsRes = await fetch(`${API_URL}/admin/metrics`, {
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
         setUpdating(true);
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-edd73a23.up.railway.app/api";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://morsecode-production-8a2d.up.railway.app/api";
 
             const res = await fetch(`${API_URL}/admin/contents/${id}`, {
                 method: 'PUT',
