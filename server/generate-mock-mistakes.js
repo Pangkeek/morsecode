@@ -51,7 +51,9 @@ async function main() {
 
         await prisma.sessionDetail.create({
           data: {
-            sessionId: session.id,
+            session: {
+                connect: { id: session.id }
+            },
             question: selectedChar,
             correctAnswer: selectedChar,
             userAnswer: 'wrong_answer',
