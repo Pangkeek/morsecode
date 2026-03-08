@@ -8,13 +8,12 @@ async function main() {
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
-  console.log('Generating realistic mistake data for "Most Failed Characters" chart...');
+  console.log('Generating realistic mistake data for "Most Failed Characters" chart (BATCH MODE)...');
 
   try {
     const playSessions = await prisma.playSession.findMany({
       take: 100,
-      orderBy: { createdAt: 'desc' },
-      include: { symbol: true } // Include the symbol relation to know which symbol caused the mistake
+      orderBy: { createdAt: 'desc' }
     });
 
     if (playSessions.length === 0) {
@@ -23,14 +22,13 @@ async function main() {
     }
 
     const commonMistakes = [
-      { char: 'a', weight: 5 }, { char: 'e', weight: 8 }, { char: 'i', weight: 6 },
-      { char: 'o', weight: 7 }, { char: 'u', weight: 4 }, { char: 'r', weight: 3 },
-      { char: 's', weight: 6 }, { char: 't', weight: 5 }, { char: '.', weight: 9 },
-      { char: '-', weight: 8 }, { char: 'x', weight: 2 }, { char: 'y', weight: 3 },
-      { char: 'z', weight: 2 }
+      { char: 'A', weight: 5 }, { char: 'E', weight: 8 }, { char: 'I', weight: 6 },
+      { char: 'O', weight: 7 }, { char: 'U', weight: 4 }, { char: 'R', weight: 3 },
+      { char: 'S', weight: 6 }, { char: 'T', weight: 5 }, { char: '.', weight: 9 },
+      { char: '-', weight: 8 }
     ];
 
-    let mistakesCreated = 0;
+    const mistakesToInsert = [];
 
     for (const session of playSessions) {
       // Create 2-8 mistakes per session
@@ -38,9 +36,9 @@ async function main() {
       
       for (let i = 0; i < numMistakes; i++) {
         // Pick a character based roughly on weight
-        const rand = Math.random() * 68; // Sum of weights approx
+        const rand = Math.random() * 61; // Sum of weights approx
         let accumulator = 0;
-        let selectedChar = 'a';
+        let selectedChar = 'A';
         
         for (const mw of commonMistakes) {
           accumulator += mw.weight;
@@ -50,26 +48,27 @@ async function main() {
           }
         }
 
-        await prisma.sessionDetail.create({
-          data: {
-            session: {
-                connect: { id: session.id }
-            },
-            symbol: {
-                connect: { id: session.symbolId }
-            },
+        mistakesToInsert.push({
+            sessionId: session.id,
+            symbolId: session.symbolId,
             question: selectedChar,
             correctAnswer: selectedChar,
             userAnswer: 'wrong_answer',
             isCorrect: false,
-            timeTaken: Math.floor(Math.random() * 3000) + 500 // 500ms to 3.5s
-          }
+            responseTime: Math.floor(Math.random() * 3000) + 500, // 500ms to 3.5s
+            orderIndex: i + 1
         });
-        mistakesCreated++;
       }
     }
 
-    console.log(`Successfully generated ${mistakesCreated} mock mistakes across ${playSessions.length} play sessions!`);
+    console.log(`Inserting ${mistakesToInsert.length} mistake records...`);
+    
+    await prisma.sessionDetail.createMany({
+        data: mistakesToInsert,
+        skipDuplicates: true
+    });
+
+    console.log(`Successfully generated ${mistakesToInsert.length} mock mistakes across ${playSessions.length} play sessions!`);
   } catch (err) {
     console.error('Error generating mistakes:', err);
   } finally {
